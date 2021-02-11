@@ -78,12 +78,11 @@ class Executor(object):
             data_size += self.outstanding[eve].value
 
         #process data
-        print(f'{Fore.MAGENTA} Executor {self.hostname}:{self.port} executes the task {task.id} with data size {data_size} at {self.env.now} {Style.RESET_ALL}')
         yield self.env.timeout(task.exec_time)
 
         # write data
-        print(f'{Fore.MAGENTA} Executor {self.hostname}:{self.port} writes data for {task.id} at {self.env.now} {Style.RESET_ALL}')
-        self.mem_port.put(task.obj_out)
+        print(f'{Fore.GREEN} Executor {self.hostname}:{self.port} writes data for {task.id} at {self.env.now} {Style.RESET_ALL}')
+        self.mem_port.put(task.obj)
         yield self.env.timeout(5)
 
         # notify the completion of this task
