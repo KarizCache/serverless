@@ -16,6 +16,7 @@ class Scheduler(object):
         env.process(self.schedule_task())
         self.workers_it = itertools.cycle(cluster.get_workers())
         self.event_to_task = {}
+        self.cache_controller = {}
 
 
     def put(self, job):
@@ -24,37 +25,41 @@ class Scheduler(object):
 
     def schedule_job(self):
         while True:
-            yield self.env.timeout(1)
-            print(f'Scheduler waiting for job at {self.env.now}')
             job = yield self.job_queue.get()
-            print(f'Scheduler got {job} at {self.env.now}')
-            execute_proc = self.env.process(self.admit(job))
-   
+            print(f'{Fore.GREEN} Scheduler got {job} at {self.env.now} {Style.RESET_ALL}')
+            execute_proc = self.env.process(self.execute_job(job))
+
+
+    def schedule_task(self):
+        while True:
+            task = yield self.task_queue.get()
+            #print(f'{Fore.LIGHTYELLOW_EX}Task scheduler picks {task.id} to execute at {self.env.now} {Style.RESET_ALL}')
+            self.submit_task(task)
+
+
     def task_finished_cb(self, event):
-        print(f'{Fore.BLUE} Executor {event}')
         # mark task as completed
         task = self.event_to_task[event]
         task.set_status('finished')
-        nt = task.job.get_next_task(task)
-
+        #print(f'{Fore.LIGHTBLUE_EX}Task {task.id} is finished at {self.env.now}.{Style.RESET_ALL}')
+        next_tasks = task.job.get_next_tasks(task)
         # send next joba to the sescheduler 
+        for t in next_tasks:
+            self.task_queue.put(t)
 
 
-    def admit(self, job):
+
+    def execute_job(self, job):
+        start_time = self.env.now
         completions = job.get_task_completions()
         tasks = job.get_next_tasks()
 
         for t in tasks:
-            self.submit_task(t)
-
-            w = self.decide_worker()
-            self.event_to_task[t.completion_event] = t
-            t.completion_event.callbacks.append(self.task_finished_cb)
-            self.cluster.submit_task(w, t)
+            self.task_queue.put(t)
         
         # wait for all tasks of this job to be done
         yield simpy.events.AllOf(self.env, completions)
-        print(f'Job {job} is done at {self.env.now}')
+        print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now}, executin time: {self.env.now - start_time} {Style.RESET_ALL}')
 
 
     def decide_worker(self):
@@ -63,10 +68,12 @@ class Scheduler(object):
         return w
 
 
-    def submit_task(self, task)
+    def submit_task(self, task):
         w = self.decide_worker()
-        self.event_to_task[t.completion_event] = t
-        t.completion_event.callbacks.append(self.task_finished_cb)
-        self.cluster.submit_task(w, t)
+        task.obj.who_has = w
+        self.event_to_task[task.completion_event] = task
+        task.completion_event.callbacks.append(self.task_finished_cb)
+        self.cluster.submit_task(w, task)
+        self.cache_controller[task.obj] = w
 
 

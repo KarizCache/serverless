@@ -7,12 +7,11 @@ import yaml
 import json
 import simpy
 import itertools
-import pandas as pd
+from storage import Storage, Cache, Object
 from colorama import Fore, Style
-from storage import Cache, Object
 
 class Executor(object):
-    def __init__(self, env, ip, port, storage_host, hostname=None, debug=False):
+    def __init__(self, env, ip, port, localcache, storage_host, hostname=None, debug=False):
         self.env = env
         self.debug = debug
         self.ip = ip
@@ -33,17 +32,19 @@ class Executor(object):
         env.process(self.data_plane())
 
         self.outstanding = {}
+        self.localcache = localcache
 
         
     def put(self, msg):
-        print(f'{Fore.YELLOW} Executor {self.hostname}:{self.port} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
+        # print(f'{Fore.YELLOW}Executor {self.hostname}:{self.port} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
         return self.msg_queue.put(msg)
 
     def data_plane(self):
         while True:
             msg = yield self.msg_queue.get()
-            print(f'{Fore.MAGENTA} Executor {self.hostname}:{self.port} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
-            self.outstanding[msg.reqid].succeed(msg.data['size'])
+            if msg.rpc == 'cache_response_data' and msg.data['status'] == 'hit':
+                print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport} at {self.env.now} {Style.RESET_ALL}')
+                self.outstanding[msg.reqid].succeed(msg.data['size'])
 
 
     def submit(self, task):
@@ -56,24 +57,33 @@ class Executor(object):
     def control_plane(self):
         while True:
             task = yield self.task_queue.get()
-            print(f'Executor {self.hostname}:{self.port} lunches task {task} at {self.env.now}')
             execute_proc = self.env.process(self.execute_function(task))
+            print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {self.env.now} {Style.RESET_ALL}')
+            yield execute_proc
 
 
     def execute_function(self, task):
-        print(f'Executor {self.hostname}:{self.port} reads data for {task.id} at {self.env.now} {Style.RESET_ALL}')
+        #print(f'Executor {self.hostname}:{self.port} reads data for {task.id} at {self.env.now} {Style.RESET_ALL}')
         self.request_id = 1
+        data_size = 0
         for obj in task.inputs:
-            req = Request(time=self.env.now,
-                    req_id= self.request_id, src=self.ip, sport=self.port, 
-                    dst = self.storage_ip, dport= self.storage_port,
-                    rpc = 'fetch_data', data = {'obj': obj['name']})
-            self.out_port.put(req)
-            self.outstanding[self.request_id] = self.env.event() 
+            if self.ip == obj.who_has.split(':')[0]:
+                # The data should be found in the local cache 
+                # just increase the hit ratio
+                print(f'{Fore.LIGHTBLUE_EX}Local cache request for {obj.name} {Style.RESET_ALL}')
+                data_size += self.localcache.peek(obj.name)
+
+            else:
+                # send it over network
+                req = Request(time=self.env.now,
+                        req_id= self.request_id, src=self.ip, sport=self.port,
+                        dst = obj.who_has.split(':')[0], dport= int(obj.who_has.split(':')[1]),
+                        rpc = 'fetch_data', data = {'obj': obj.name})
+                self.outstanding[self.request_id] = self.env.event() 
+                self.out_port.put(req)
             self.request_id += 1
         yield simpy.events.AllOf(self.env, self.outstanding.values())
 
-        data_size = 0
         for eve in self.outstanding:
             data_size += self.outstanding[eve].value
 
@@ -81,24 +91,28 @@ class Executor(object):
         yield self.env.timeout(task.exec_time)
 
         # write data
-        print(f'{Fore.GREEN} Executor {self.hostname}:{self.port} writes data for {task.id} at {self.env.now} {Style.RESET_ALL}')
-        self.mem_port.put(task.obj)
-        yield self.env.timeout(5)
+        if self.debug:
+            print(f'{Fore.GREEN}Executor {self.hostname}:{self.port} writes data for {task.id} at {self.env.now} {Style.RESET_ALL}')
+        self.mem_port.insert(task.obj)
 
         # notify the completion of this task
         task.completion_event.succeed()
 
 
 class Worker:
-    def __init__(self, env, name, ip, rate, executors, gateway, storage_host, memsize, cache_policy):
+    def __init__(self, env, name, ip, rate, executors, gateway, storage_host, memsize, cache_policy, cache_port):
         self.hostname = name
         self.env = env;
         self.n_exec = executors
         self.nic = NetworkInterface(env, name=name, ip=ip, rate=rate, gateway=gateway)
-        self.cache = Cache(env=env, size=memsize, policy=cache_policy)
+
+        self.cache = Cache(env=env, size=memsize, policy=cache_policy, port=cache_port, hostname=self.hostname)
+        self.nic.add_flow(self.cache.port, self.cache)
+        self.cache.out_port = self.nic
+
         self.executors = {}
         for i in range(executors):
-            self.executors[i] = Executor(env, hostname=name, ip=ip, port=5000+i, storage_host=storage_host, debug=False)
+            self.executors[i] = Executor(env, hostname=name, ip=ip, port=5000+i, localcache=self.cache, storage_host=storage_host, debug=False)
             self.executors[i].out_port = self.nic
             self.nic.add_flow(self.executors[i].port, self.executors[i])
             self.executors[i].mem_port = self.cache 
@@ -107,50 +121,8 @@ class Worker:
 
 
     def submit_task(self, task):
+        task.obj.who_has = f'{self.nic.ip}:{self.cache.port}'
         self.env.process(self.executors[next(self.exec_it)].submit(task))
-
-
-class Storage:
-    def __init__(self, env, name, ip, port, nic_rate, gateway, storage_rate):
-        self.metadata = None
-        self.env = env
-        self.name = name
-        self.ip = ip
-        self.port = port
-        self.storage_rate = storage_rate
-        self.task_queue = simpy.Store(env)
-        self.nic = NetworkInterface(env, name=name, ip=ip, rate=nic_rate, gateway=gateway)
-        self.nic.add_flow(port, self)
-        executor = env.process(self.run())
-
-
-    def load_metadata(self, fpath):
-        self.metadata = pd.read_csv(fpath, index_col='fname')
-        self.metadata['size'] = self.metadata['size']*1024*1024 # assign sizes 
-
-
-    def run(self):
-        while True:
-            req = yield self.task_queue.get()
-            print(f'Storage {self.name} recieved message {req} at {self.env.now}')
-            if req.rpc == 'fetch_data':
-                obj = req.data['obj']
-                obj_size = int(self.metadata.loc[obj]['size'])
-                fetch_time = round(obj_size/self.storage_rate, 2)
-                yield self.env.timeout(fetch_time) # need 5 minutes to fuel the tank
-                print(f'Storage {self.name} fetched object {obj} with size {obj_size} and fetch time {fetch_time} at {self.env.now}')
-                resp = Request(time=self.env.now,
-                        req_id= req.reqid, src=self.ip, sport=self.port, 
-                        dst = req.src, dport= req.sport,
-                        rpc = 'response_data', data = {'obj': obj, 'size' : obj_size})
-                self.nic.put(resp)
-
-
-            
-
-    def put(self, req):
-        return self.task_queue.put(req)
-
 
 
 class Cluster:
@@ -170,9 +142,9 @@ class Cluster:
                 node = topology[name]
                 name = node['name']
                 if node['type'] == 'worker':
-                    print(node)
                     worker = Worker(env = env, name=name, ip=node['ip'], rate=node['rate'], executors=node['executors'], 
-                            memsize=node['memory'], gateway=node['gateway'], storage_host=node['storage'], cache_policy=node['cache.policy'])
+                            memsize=node['memory'], gateway=node['gateway'], 
+                            storage_host=node['storage'], cache_policy=node['cache.policy'], cache_port=node['cache.port'])
                     self.workers[name] = worker
                 elif node['type'] == 'router':
                     router = Router(env=env, name=name, ip=node['ip'], ports=node['ports'], rate=node['rate'], gateway=node['gateway'], debug=False)

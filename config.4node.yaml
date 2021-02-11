@@ -1,9 +1,9 @@
 workloads:
-        - graph: '/opt/dask-distributed/benchmark/fb405a30.g'
-          execution: '/opt/dask-distributed/benchmark/fb405a30.json'
+        - graph: '/opt/dask-distributed/benchmark/e3994927.g'
+          execution: '/opt/dask-distributed/benchmark/e3994927.json'
 topology:
    w1:
-      executors: 3
+      executors: 1
       type: worker
       name: w1
       memory: 32000000 
@@ -14,7 +14,7 @@ topology:
       rate: 1073741824
       gateway: r1 
    w2:
-      executors: 3
+      executors: 1
       type: worker
       name: w2
       memory: 32000000 # 32MB  
@@ -24,19 +24,7 @@ topology:
       storage: 192.168.3.2:9000
       rate: 1073741824
       gateway: r1 
-   w6:
-      executors: 3
-      type: worker
-      name: w6
-      rate: 1073741824
-      memory: 32000000 # 32MB  
-      cache.policy: FIFO 
-      cache.port: 9001 
-      ip: 192.168.1.4
-      gateway: r1
-      storage: 192.168.3.2:9000
    r1:
-      executors: 3
       type: router
       name: r1
       ports: 4
@@ -44,7 +32,7 @@ topology:
       ip: 192.168.1.1
       gateway: r3 
    w3:
-      executors: 3
+      executors: 1
       type: worker
       name: w3
       rate: 1073741824
@@ -55,7 +43,7 @@ topology:
       gateway: r2 
       storage: 192.168.3.2:9000
    w4:
-      executors: 3
+      executors: 1
       type: worker
       name: w4
       rate: 1073741824
@@ -65,19 +53,7 @@ topology:
       ip: 192.168.2.3
       gateway: r2
       storage: 192.168.3.2:9000
-   w5:
-      executors: 3
-      type: worker
-      name: w5
-      rate: 1073741824
-      memory: 32000000 # 32MB  
-      cache.policy: FIFO 
-      cache.port: 9001 
-      ip: 192.168.2.4
-      gateway: r2
-      storage: 192.168.3.2:9000
    r2:
-      executors: 3
       type: router
       name: r2
       ports: 4
@@ -85,7 +61,6 @@ topology:
       ip: 192.168.2.1
       gateway: r3 
    r3:
-      executors: 3
       type: router
       name: r3
       rate: 1073741824

@@ -50,7 +50,7 @@ class Request(object):
                getsizeof(self.dst) + getsizeof(self.dport) + getsizeof(self.data) + getsizeof(self.rpc) + (self.data['size'] if 'size' in self.data else 0) 
 
     def __repr__(self):
-        return "rpc: {}, data: {}, src: {}:{}, dst{}:{}, req_id: {}, time: {} with size {}".\
+        return "rpc: {}, data: {}, src: {}:{}, dst: {}:{}, req_id: {}, time: {} with size: {}".\
             format(self.rpc, self.data, self.src, self.sport, self.dst, self.dport, self.reqid, self.time, self.size)
 
 
@@ -139,9 +139,10 @@ class NetworkInterface(object):
     def receive(self):
         while True:
             msg = (yield self.in_store.get()) 
-            print(f'NIC {self.ip} recieved message {msg} at {self.env.now}')
+            if self.debug:
+                print(f'NIC {self.ip} recieved message {msg} at {self.env.now}')
             if msg.dport not in self.recipients:
-                raise NameError(f'There is no recipient for this message at {msg.dport}')
+                raise NameError(f'There is no recipient for this message at {self.ip}:{msg.dport}')
             yield self.recipients[msg.dport].put(msg)
 
 
@@ -151,7 +152,6 @@ class NetworkInterface(object):
             self.busy = 1
             self.byte_size -= msg.size
             transmit_time = msg.size*8.0/self.rate
-            print(transmit_time)
             yield self.env.timeout(transmit_time)
             self.out.put(msg)
             self.busy = 0
@@ -299,7 +299,8 @@ class Router(object):
     def put(self, pkt):
         self.packets_rec += 1
         dest = self.route(pkt)
-        print(f'router {self.name}, packet source {pkt.src} destination {pkt.dst}, next hop {dest.connected_ip}')
+        if self.debug:
+            print(f'router {self.name}, packet source {pkt.src} destination {pkt.dst}, next hop {dest.connected_ip}')
         return dest.put(pkt)
 
 
@@ -588,7 +589,6 @@ class WFQServer(object):
             phi_sum += self.phis[i]
         self.vtime += (now-self.last_update)/phi_sum
         self.F_times[flow_id] = max(self.F_times[flow_id], self.vtime) + pkt.size*8.0/self.phis[flow_id]
-        # print "Flow id = {}, packet_id = {}, F_time = {}".format(flow_id, pkt.id, self.F_times[flow_id])
         self.last_update = now
         return self.store.put((self.F_times[flow_id], pkt))
 

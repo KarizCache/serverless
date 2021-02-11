@@ -18,6 +18,7 @@ class Task:
         self.completion_event = env.event()
         self.job = job
 
+
     def set_output_size(self, size):
         self.nbytes = size
         self.obj = Object(self.name, size)
@@ -37,6 +38,7 @@ class Task:
 
     def set_name(self, name):
         self.name = name
+        self.obj.name = self.name
 
     def set_id(self, id):
         self.id = id 
@@ -50,8 +52,7 @@ class Job:
     def __init__(self, env):
         self.env = env
         self.g = None
-        self.candidates = set()
-        self.pendings = set()
+        self.completion_events = []
         self.vid_to_vtx = {}
 
     def build_job_from_file(self, gfile, histfile):
@@ -60,6 +61,7 @@ class Job:
             taskstat = ast.literal_eval(fd.read())
             for name in taskstat:
                 ts = Task(self.env, job = self)
+                self.completion_events.append(ts.completion_event)
                 name_to_task[name] = ts
                 ts.set_output_size(taskstat[name]['msg']['nbytes'])
                 for ss in taskstat[name]['msg']['startstops']:
@@ -94,17 +96,21 @@ class Job:
         return self
 
 
-    def get_next(self, task=None):
+    def get_task_completions(self):
+        return self.completion_events
+
+
+    def get_next_tasks(self, task=None):
         if not task:
             return self.get_ready_tasks()
 
         assert(task.status == 'finished')
-        v = self.vid_to_vtx[task.vid]
+        v = self.vid_to_vtx[task.id]
         ready = set()
         for vo in v.out_neighbors():
             is_ready = True
-            for vi in vo.out_neighbors:
-                if vi.task.status != 'finished':
+            for vi in vo.in_neighbors():
+                if self.g.vp.tasks[vi].status != 'finished':
                     is_ready = False
                     break
             if is_ready:
@@ -114,10 +120,10 @@ class Job:
 
     def get_ready_tasks(self):
         ready = set()
-        for v in g.vertices():
+        for v in self.g.vertices():
             is_ready = True
             for vi in v.in_neighbors():
-                if g.vp.tasks[vi].status != 'finished':
+                if self.g.vp.tasks[vi].status != 'finished':
                     is_ready = False
                     break
             if is_ready:

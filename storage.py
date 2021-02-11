@@ -1,36 +1,66 @@
 #!/usr/bin/python3
 import random
 import queue
-
+import simpy
+import pandas as pd
+from netsim import Request, NetworkInterface
 
 class Object:
     def __init__(self, name, size):
         self.color = 0 # The color range is 0x000000-0xFFFFFF
         self.size = size
         self.name = name
+        self.who_has = ''
 
 
 class Cache:
-    def __init__(self, env, size, policy):
+    def __init__(self, env, size, policy, port, hostname=None):
+        self.env = env
         self.eviction_policy = policy # This could be LRU, LRU, Fifo. Lets go with Fifo
+        self.hostname = hostname
         self.size = size
         self.queue = queue.Queue(size)
-        self.metadata = {}
+        self.req_queue = simpy.Store(env)
+        self.cache = {}
+        self.port = port
+        self.out_port = None
+        executor = self.env.process(self.run())
 
 
-    def put(self, obj):
-        self.fifo_admit(obj)
+    def put(self, req):
+        return self.req_queue.put(req)
+
+    def run(self):
+        while True:
+            req = yield self.req_queue.get()
+            #print(f'Cache {self.hostname} recieved fetch request {req.rpc} at {self.env.now}')
+            key = req.data['obj']
+            size = self.peek(key)
+            resp = Request(time=self.env.now,
+                        req_id= req.reqid, src=self.out_port.ip, sport=self.port,
+                        dst = req.src, dport= req.sport,
+                        rpc = 'cache_response_data', data = {'obj': key, 'size' : size, 'status': 'hit'})\
+                                if size else\
+                                Request(time=self.env.now,
+                                        req_id= req.reqid, src=self.out_port.ip, sport=self.port,
+                                        dst = req.src, dport= req.sport,
+                                        rpc = 'cache_response_data', data = {'obj': key, 'size': 0, 'status': 'miss'})
+            self.out_port.put(resp)
 
 
-    def fifo_admit(self, obj):
-        if self.queue.full():
-           yield self.env.process(self.fifo_evict()) 
-        self.queu.put(obj)
 
+    def insert(self, obj):
+        # insert object into the cache 
+        self.cache[obj.name] = obj
+        pass
 
-    def fifo_evict(self):
-        if self.queue.empty(): return
-        return self.queue.get()
+    def peek(self, key):
+        if key in self.cache:
+            obj = self.cache[key]
+            print(f'{self.hostname}: request for Cache object {obj.name} with size {obj.size} hit in cache at {self.env.now}')
+            return obj.size
+        return 0
+
 
 
 
@@ -64,13 +94,13 @@ class Storage:
 
     def load_metadata(self, fpath):
         self.metadata = pd.read_csv(fpath, index_col='fname')
-        self.metadata['size'] = self.metadata['size']*1024*1024 # assign sizes 
+        self.metadata['size'] = self.metadata['size']*1024*1024 # assign sizes
 
 
     def run(self):
         while True:
             req = yield self.task_queue.get()
-            print(f'Storage {self.name} recieved message {req} at {self.env.now}')
+            print(f'Storage {self.name} recieved message {req.rpc} at {self.env.now}')
             if req.rpc == 'fetch_data':
                 obj = req.data['obj']
                 obj_size = int(self.metadata.loc[obj]['size'])
@@ -78,11 +108,11 @@ class Storage:
                 yield self.env.timeout(fetch_time) # need 5 minutes to fuel the tank
                 print(f'Storage {self.name} fetched object {obj} with size {obj_size} and fetch time {fetch_time} at {self.env.now}')
                 resp = Request(time=self.env.now,
-                        req_id= req.reqid, src=self.ip, sport=self.port, 
+                        req_id= req.reqid, src=self.ip, sport=self.port,
                         dst = req.src, dport= req.sport,
                         rpc = 'response_data', data = {'obj': obj, 'size' : obj_size})
                 self.nic.put(resp)
-            
+
 
     def put(self, req):
         return self.task_queue.put(req)
