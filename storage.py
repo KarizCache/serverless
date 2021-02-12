@@ -57,7 +57,7 @@ class Cache:
     def peek(self, key):
         if key in self.cache:
             obj = self.cache[key]
-            print(f'{self.hostname}: request for Cache object {obj.name} with size {obj.size} hit in cache at {self.env.now}')
+            #print(f'{self.hostname}: peek the request for object {obj.name} with size {obj.size} hit in cache at {self.env.now}')
             return obj.size
         return 0
 

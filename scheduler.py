@@ -3,8 +3,8 @@
 import simpy
 import itertools
 from colorama import Fore, Style
-
-
+from uhashring import HashRing
+import random
 
 class Scheduler(object):
     def __init__(self, env, cluster):
@@ -15,8 +15,10 @@ class Scheduler(object):
         env.process(self.schedule_job())
         env.process(self.schedule_task())
         self.workers_it = itertools.cycle(cluster.get_workers())
+        self.hash_ring = HashRing(nodes=list(cluster.get_workers()))
         self.event_to_task = {}
         self.cache_controller = {}
+        self.policy = 'consistent_hash'
 
 
     def put(self, job):
@@ -62,14 +64,25 @@ class Scheduler(object):
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now}, executin time: {self.env.now - start_time} {Style.RESET_ALL}')
 
 
-    def decide_worker(self):
+    def decide_worker(self, task=None):
         # lets do the round robin for now
-        w = next(self.workers_it)
-        return w
+        print(task)
+        if self.policy == 'round_robin':
+            return next(self.workers_it)
+        if self.policy == 'random':
+            return random.choice(self.workers)
+        if self.policy == 'consistent_hash':
+            assert(task)
+            return self.hash_ring.get_node(task.obj.name)
+        if self.policy == 'rodrigos':
+            pass
+        if self.policy == 'manias':
+            pass
+
 
 
     def submit_task(self, task):
-        w = self.decide_worker()
+        w = self.decide_worker() if not self.policy == 'consistent_hash' else self.decide_worker(task)
         task.obj.who_has = w
         self.event_to_task[task.completion_event] = task
         task.completion_event.callbacks.append(self.task_finished_cb)

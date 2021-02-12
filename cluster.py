@@ -12,6 +12,7 @@ from colorama import Fore, Style
 
 class Executor(object):
     def __init__(self, env, ip, port, localcache, storage_host, hostname=None, debug=False):
+        self.request_id = 1
         self.env = env
         self.debug = debug
         self.ip = ip
@@ -43,8 +44,9 @@ class Executor(object):
         while True:
             msg = yield self.msg_queue.get()
             if msg.rpc == 'cache_response_data' and msg.data['status'] == 'hit':
-                print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport} at {self.env.now} {Style.RESET_ALL}')
+                #print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport},{msg.reqid} at {self.env.now} {Style.RESET_ALL}')
                 self.outstanding[msg.reqid].succeed(msg.data['size'])
+                del self.outstanding[msg.reqid]
 
 
     def submit(self, task):
@@ -58,19 +60,17 @@ class Executor(object):
         while True:
             task = yield self.task_queue.get()
             execute_proc = self.env.process(self.execute_function(task))
-            print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {self.env.now} {Style.RESET_ALL}')
             yield execute_proc
 
 
     def execute_function(self, task):
-        #print(f'Executor {self.hostname}:{self.port} reads data for {task.id} at {self.env.now} {Style.RESET_ALL}')
-        self.request_id = 1
+        start = self.env.now
         data_size = 0
         for obj in task.inputs:
             if self.ip == obj.who_has.split(':')[0]:
                 # The data should be found in the local cache 
                 # just increase the hit ratio
-                print(f'{Fore.LIGHTBLUE_EX}Local cache request for {obj.name} {Style.RESET_ALL}')
+                #print(f'{Fore.LIGHTBLUE_EX}Local cache request for {obj.name} {Style.RESET_ALL}')
                 data_size += self.localcache.peek(obj.name)
 
             else:
@@ -79,6 +79,7 @@ class Executor(object):
                         req_id= self.request_id, src=self.ip, sport=self.port,
                         dst = obj.who_has.split(':')[0], dport= int(obj.who_has.split(':')[1]),
                         rpc = 'fetch_data', data = {'obj': obj.name})
+                #print(f'{Fore.LIGHTRED_EX}Executor {self.hostname}:{self.port} request for {req.data["obj"]},{req.reqid} from {req.dst}:{req.dport} at {self.env.now} {Style.RESET_ALL}')
                 self.outstanding[self.request_id] = self.env.event() 
                 self.out_port.put(req)
             self.request_id += 1
@@ -96,6 +97,7 @@ class Executor(object):
         self.mem_port.insert(task.obj)
 
         # notify the completion of this task
+        print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
         task.completion_event.succeed()
 
 

@@ -1,8 +1,6 @@
-scheduler:
-        policy: round_robin # The policy could be round robin, random, consistent hash, Rodrigo's coloring, Mania's coloring
 workloads:
-        - graph: '/opt/dask-distributed/benchmark/fb405a30.g'
-          execution: '/opt/dask-distributed/benchmark/fb405a30.json'
+        - graph: '/opt/dask-distributed/benchmark/881fe99a.g'
+          execution: '/opt/dask-distributed/benchmark/881fe99a.json'
 topology:
    w1:
       executors: 3
@@ -13,7 +11,7 @@ topology:
       cache.port: 9001 
       ip: 192.168.1.2
       storage: 192.168.3.2:9000
-      rate: 1073741824
+      rate: 10737418240
       gateway: r1 
    w2:
       executors: 3
@@ -24,73 +22,48 @@ topology:
       cache.port: 9001 
       ip: 192.168.1.3
       storage: 192.168.3.2:9000
-      rate: 1073741824
+      rate: 10737418240
       gateway: r1 
-   w6:
-      executors: 3
-      type: worker
-      name: w6
-      rate: 1073741824
-      memory: 32000000 # 32MB  
-      cache.policy: FIFO 
-      cache.port: 9001 
-      ip: 192.168.1.4
-      gateway: r1
-      storage: 192.168.3.2:9000
    r1:
-      executors: 3
       type: router
       name: r1
-      ports: 4
-      rate: 1073741824
+      ports: 6
+      rate: 10737418240
       ip: 192.168.1.1
       gateway: r3 
    w3:
       executors: 3
       type: worker
       name: w3
-      rate: 1073741824
+      rate: 10737418240
       memory: 32000000 # 32MB  
       cache.policy: FIFO 
       cache.port: 9001 
-      ip: 192.168.2.2
-      gateway: r2 
+      ip: 192.168.1.4
+      gateway: r1 
       storage: 192.168.3.2:9000
    w4:
       executors: 3
       type: worker
       name: w4
-      rate: 1073741824
+      rate: 10737418240
       memory: 32000000 # 32MB  
       cache.policy: FIFO 
       cache.port: 9001 
-      ip: 192.168.2.3
-      gateway: r2
-      storage: 192.168.3.2:9000
-   w5:
-      executors: 3
-      type: worker
-      name: w5
-      rate: 1073741824
-      memory: 32000000 # 32MB  
-      cache.policy: FIFO 
-      cache.port: 9001 
-      ip: 192.168.2.4
-      gateway: r2
+      ip: 192.168.1.5
+      gateway: r1
       storage: 192.168.3.2:9000
    r2:
-      executors: 3
       type: router
       name: r2
       ports: 4
-      rate: 1073741824
+      rate: 10737418240
       ip: 192.168.2.1
       gateway: r3 
    r3:
-      executors: 3
       type: router
       name: r3
-      rate: 1073741824
+      rate: 10737418240
       ports: 4
       ip: 192.168.3.1
       gateway: None 
@@ -99,7 +72,7 @@ topology:
       name: s1
       ip: 192.168.3.2
       port: 9000
-      rate: 1073741824
+      rate: 10737418240
       storage_rate: 104857600 #100MBps
       metadata: /local0/wlmod/simulator/karizsim/inputs.csv
       gateway: r3
