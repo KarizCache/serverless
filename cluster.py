@@ -33,7 +33,10 @@ class Executor(object):
         env.process(self.data_plane())
 
         self.outstanding = {}
+        self.timeoutstanding = {}
         self.localcache = localcache
+        self.transmit_time = 0
+        self.compute_time = 0
 
         
     def put(self, msg):
@@ -45,8 +48,8 @@ class Executor(object):
             msg = yield self.msg_queue.get()
             if msg.rpc == 'cache_response_data' and msg.data['status'] == 'hit':
                 #print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport},{msg.reqid} at {self.env.now} {Style.RESET_ALL}')
-                self.outstanding[msg.reqid].succeed(msg.data['size'])
-                del self.outstanding[msg.reqid]
+                start = self.timeoutstanding[msg.reqid]
+                self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 'transfer_time': self.env.now - start})
 
 
     def submit(self, task):
@@ -66,13 +69,17 @@ class Executor(object):
     def execute_function(self, task):
         start = self.env.now
         data_size = 0
+        local_read = 0
+        remote_read = 0
+        self.outstanding = {}
+        self.timeoutstanding = {}
         for obj in task.inputs:
             if self.ip == obj.who_has.split(':')[0]:
                 # The data should be found in the local cache 
                 # just increase the hit ratio
                 #print(f'{Fore.LIGHTBLUE_EX}Local cache request for {obj.name} {Style.RESET_ALL}')
                 data_size += self.localcache.peek(obj.name)
-
+                local_read +=  self.localcache.peek(obj.name)
             else:
                 # send it over network
                 req = Request(time=self.env.now,
@@ -80,13 +87,21 @@ class Executor(object):
                         dst = obj.who_has.split(':')[0], dport= int(obj.who_has.split(':')[1]),
                         rpc = 'fetch_data', data = {'obj': obj.name})
                 #print(f'{Fore.LIGHTRED_EX}Executor {self.hostname}:{self.port} request for {req.data["obj"]},{req.reqid} from {req.dst}:{req.dport} at {self.env.now} {Style.RESET_ALL}')
-                self.outstanding[self.request_id] = self.env.event() 
+                self.outstanding[self.request_id] = self.env.event()
+                self.timeoutstanding[self.request_id] = self.env.now
                 self.out_port.put(req)
             self.request_id += 1
         yield simpy.events.AllOf(self.env, self.outstanding.values())
 
+        trnasfer_time = self.env.now - start
+        transmit_time = 0
+        #print(self.outstanding, trnasfer_time)
         for eve in self.outstanding:
-            data_size += self.outstanding[eve].value
+            val = self.outstanding[eve].value
+            #print(f' value is {val}')
+            transmit_time += self.outstanding[eve].value['transfer_time']
+            data_size += self.outstanding[eve].value['size']
+            remote_read += self.outstanding[eve].value['size']
 
         #process data
         yield self.env.timeout(task.exec_time)
@@ -98,7 +113,7 @@ class Executor(object):
 
         # notify the completion of this task
         print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
-        task.completion_event.succeed()
+        task.completion_event.succeed(value={'transfer': transmit_time, 'cpu_time': task.exec_time, 'remote_read': remote_read, 'local_read': local_read})
 
 
 class Worker:

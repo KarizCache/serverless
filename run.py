@@ -5,7 +5,7 @@ from workload import Workload
 from scheduler import Scheduler
 from cluster import Cluster
 
-config = '/local0/serverless-sim/config.4n1c.yaml' 
+config = '/local0/serverless-sim/configs/config.4n1c.yaml' 
 env = simpy.Environment()
 cluster = Cluster(env, config)
 scheduler = Scheduler(env, cluster=cluster)

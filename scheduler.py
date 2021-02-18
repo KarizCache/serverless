@@ -19,6 +19,10 @@ class Scheduler(object):
         self.event_to_task = {}
         self.cache_controller = {}
         self.policy = 'consistent_hash'
+        self.transmit_time = 0
+        self.cpu_time = 0
+        self.local_read = 0
+        self.remote_read = 0
 
 
     def put(self, job):
@@ -43,6 +47,10 @@ class Scheduler(object):
         # mark task as completed
         task = self.event_to_task[event]
         task.set_status('finished')
+        self.transmit_time += event.value['transfer']
+        self.cpu_time += event.value['cpu_time']
+        self.remote_read += event.value['remote_read']
+        self.local_read += event.value['local_read']
         #print(f'{Fore.LIGHTBLUE_EX}Task {task.id} is finished at {self.env.now}.{Style.RESET_ALL}')
         next_tasks = task.job.get_next_tasks(task)
         # send next joba to the sescheduler 
@@ -61,7 +69,7 @@ class Scheduler(object):
         
         # wait for all tasks of this job to be done
         yield simpy.events.AllOf(self.env, completions)
-        print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now}, executin time: {self.env.now - start_time} {Style.RESET_ALL}')
+        print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now}, executin time: {self.env.now - start_time}, remote read: {self.remote_read}, local_read: {self.local_read}, transfer time: {self.transmit_time}, cput_time: {self.cpu_time} {Style.RESET_ALL}')
 
 
     def decide_worker(self, task=None):
