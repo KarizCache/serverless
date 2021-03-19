@@ -22,7 +22,7 @@ import datetime
 # Start the computation.
 n_samples_classification = 1000
 n_samples = 8000000
-chunks = n_samples//20
+chunks = n_samples//10
 
 name = f'parallelizing_svm_8M_400k'
 

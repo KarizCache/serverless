@@ -3,6 +3,7 @@
 
 from job import Job
 from netsim import Router, Request, NetworkInterface
+import utils 
 import yaml
 import json
 import simpy
@@ -38,6 +39,9 @@ class Executor(object):
         self.transmit_time = 0
         self.compute_time = 0
 
+        self.serialization_policy = 'lazy'
+        self.deserialization_latency = utils.fit_deserialization();
+
         
     def put(self, msg):
         # print(f'{Fore.YELLOW}Executor {self.hostname}:{self.port} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
@@ -46,10 +50,19 @@ class Executor(object):
     def data_plane(self):
         while True:
             msg = yield self.msg_queue.get()
+            transfer_start = self.timeoutstanding[msg.reqid]
+            transfer_stop = self.env.now
+            #print(f'{Fore.WHITE}Executor {self.hostname}:{self.port} read {msg} at {self.env.now} {Style.RESET_ALL}')
             if msg.rpc == 'cache_response_data' and msg.data['status'] == 'hit':
-                #print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport},{msg.reqid} at {self.env.now} {Style.RESET_ALL}')
-                start = self.timeoutstanding[msg.reqid]
-                self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 'transfer_time': self.env.now - start})
+                _type = 'remote'
+                deser_latency = self.deserialization_latency(msg.data['size']) 
+                yield self.env.timeout(deser_latency)
+                print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport},{msg.reqid} at {self.env.now} {Style.RESET_ALL}')
+            elif msg.rpc == 'localcache_response_data':
+                _type = 'local' 
+                deser_latency = 0
+                print(f'{Fore.LIGHTGREEN_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from local cache at {self.env.now} {Style.RESET_ALL}')
+            self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 'transfer_time': transfer_stop - transfer_start, 'type': _type, 'deserialization_time': deser_latency})
 
 
     def submit(self, task):
@@ -74,12 +87,17 @@ class Executor(object):
         self.outstanding = {}
         self.timeoutstanding = {}
         for obj in task.inputs:
+            self.outstanding[self.request_id] = self.env.event()
+            self.timeoutstanding[self.request_id] = self.env.now
             if self.ip == obj.who_has.split(':')[0]:
                 # The data should be found in the local cache 
-                # just increase the hit ratio
-                #print(f'{Fore.LIGHTBLUE_EX}Local cache request for {obj.name} {Style.RESET_ALL}')
-                data_size += self.localcache.peek(obj.name)
-                local_read +=  self.localcache.peek(obj.name)
+                # just increase the hit ratio and pay for the deserialization on the read
+                #print(f'{Fore.LIGHTGREEN_EX}Local cache request for {obj.name} {Style.RESET_ALL}')
+                req = Request(time=self.env.now,
+                        req_id= self.request_id, src=self.ip, sport=self.port,
+                        dst = self.ip, dport= int(self.port),
+                        rpc = 'fetch_from_local_cache', data = {'obj': obj.name})
+                self.localcache.put(req)
             else:
                 # send it over network
                 req = Request(time=self.env.now,
@@ -95,25 +113,34 @@ class Executor(object):
 
         trnasfer_time = self.env.now - start
         transmit_time = 0
-        #print(self.outstanding, trnasfer_time)
+        deser_time = 0
         for eve in self.outstanding:
             val = self.outstanding[eve].value
-            #print(f' value is {val}')
             transmit_time += self.outstanding[eve].value['transfer_time']
             data_size += self.outstanding[eve].value['size']
-            remote_read += self.outstanding[eve].value['size']
+            if self.outstanding[eve].value['type'] == 'remote':
+                remote_read += self.outstanding[eve].value['size']
+            else:
+                local_read += self.outstanding[eve].value['size']
+            deser_time += self.outstanding[eve].value['deserialization_time']
 
         #process data
         yield self.env.timeout(task.exec_time)
 
         # write data
         if self.debug:
-            print(f'{Fore.GREEN}Executor {self.hostname}:{self.port} writes data for {task.id} at {self.env.now} {Style.RESET_ALL}')
-        self.mem_port.insert(task.obj)
+            print(f'{Fore.GREEN}Executor {self.hostname}:{self.port} writes object {task.obj} for {task.id} at {self.env.now} at {self.mem_port} {Style.RESET_ALL}')
+        
+        if self.serialization_policy == 'sync':
+            yield self.env.process(self.mem_port.insert(task.obj))
+        elif self.serialization_policy == 'lazy':
+            self.env.process(self.mem_port.insert(task.obj))
+
 
         # notify the completion of this task
-        print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
-        task.completion_event.succeed(value={'transfer': transmit_time, 'cpu_time': task.exec_time, 'remote_read': remote_read, 'local_read': local_read})
+        if self.debug:
+            print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
+        task.completion_event.succeed(value={'transfer': transmit_time, 'cpu_time': task.exec_time, 'remote_read': remote_read, 'local_read': local_read, 'deserialization_time': deser_time})
 
 
 class Worker:
@@ -123,7 +150,7 @@ class Worker:
         self.n_exec = executors
         self.nic = NetworkInterface(env, name=name, ip=ip, rate=rate, gateway=gateway)
 
-        self.cache = Cache(env=env, size=memsize, policy=cache_policy, port=cache_port, hostname=self.hostname)
+        self.cache = Cache(env=self.env, size=memsize, policy=cache_policy, port=cache_port, hostname=self.hostname)
         self.nic.add_flow(self.cache.port, self.cache)
         self.cache.out_port = self.nic
 

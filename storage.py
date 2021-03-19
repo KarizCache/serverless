@@ -3,7 +3,9 @@ import random
 import queue
 import simpy
 import pandas as pd
+import utils
 from netsim import Request, NetworkInterface
+from colorama import Fore, Style
 
 class Object:
     def __init__(self, name, size):
@@ -11,6 +13,12 @@ class Object:
         self.size = size
         self.name = name
         self.who_has = ''
+
+    def __repr__(self):
+        return f'{self.name}:{self.size}'
+
+    def __str__(self):
+        return f'{self.name}:{self.size}'
 
 
 class Cache:
@@ -22,6 +30,9 @@ class Cache:
         self.queue = queue.Queue(size)
         self.req_queue = simpy.Store(env)
         self.cache = {}
+        self.outstanding = {} # list of requests that are waiting for this object
+        self.serialization_latency = utils.fit_serialization()
+        self.deserialization_latency = utils.fit_deserialization()
         self.port = port
         self.out_port = None
         executor = self.env.process(self.run())
@@ -35,32 +46,42 @@ class Cache:
             req = yield self.req_queue.get()
             #print(f'Cache {self.hostname} recieved fetch request {req.rpc} at {self.env.now}')
             key = req.data['obj']
-            size = self.peek(key)
+            size = yield self.env.process(self.peek(key))
+            rpc = 'localcache_response_data' if req.src == self.out_port.ip else 'cache_response_data'
             resp = Request(time=self.env.now,
                         req_id= req.reqid, src=self.out_port.ip, sport=self.port,
                         dst = req.src, dport= req.sport,
-                        rpc = 'cache_response_data', data = {'obj': key, 'size' : size, 'status': 'hit'})\
+                        rpc = rpc, data = {'obj': key, 'size' : size, 'status': 'hit'})\
                                 if size else\
                                 Request(time=self.env.now,
                                         req_id= req.reqid, src=self.out_port.ip, sport=self.port,
                                         dst = req.src, dport= req.sport,
-                                        rpc = 'cache_response_data', data = {'obj': key, 'size': 0, 'status': 'miss'})
+                                        rpc = rpc, data = {'obj': key, 'size': 0, 'status': 'miss'})
             self.out_port.put(resp)
 
 
-
     def insert(self, obj):
+        ser_latency = self.serialization_latency(obj.size)
+        #print(f'Cache insertion for obj {obj.name} at {obj.size} serialization cost: {ser_latency}')
+        self.outstanding[obj.name] = self.env.event() 
+        yield self.env.timeout(ser_latency)
+        self.outstanding[obj.name].succeed(value={'size': obj.size})
+        
         # insert object into the cache 
         self.cache[obj.name] = obj
-        pass
+        del self.outstanding[obj.name]
+
 
     def peek(self, key):
+        size = 0
+        if key in self.outstanding:
+            #print(f'Wait for {key} to be serialized in the cache')
+            yield self.outstanding[key]
         if key in self.cache:
             obj = self.cache[key]
-            #print(f'{self.hostname}: peek the request for object {obj.name} with size {obj.size} hit in cache at {self.env.now}')
-            return obj.size
-        return 0
-
+            #print(f'{Fore.RED} Obj {obj.name}:{obj.size} exist in the cache {Style.RESET_ALL}')
+            size = obj.size
+        return size
 
 
 
@@ -100,7 +121,7 @@ class Storage:
     def run(self):
         while True:
             req = yield self.task_queue.get()
-            print(f'Storage {self.name} recieved message {req.rpc} at {self.env.now}')
+            #print(f'Storage {self.name} recieved message {req.rpc} at {self.env.now}')
             if req.rpc == 'fetch_data':
                 obj = req.data['obj']
                 obj_size = int(self.metadata.loc[obj]['size'])

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import random
 from storage import Object
+from collections import defaultdict, deque
 import graph_tool.all as gt
 import ast
 import json
@@ -13,10 +14,13 @@ class Task:
         self.id = 0
         self.name = ''
         self.exec_time = 0
+        self.schedule_delay = 0
         self.nbytes = 0
         self.obj = None
         self.completion_event = env.event()
         self.job = job
+        self.color = None
+        self.child_color = None
 
 
     def set_output_size(self, size):
@@ -45,6 +49,9 @@ class Task:
 
     def set_status(self, status):
         self.status = status
+
+    def set_schedule_delay(self, delay):
+        self.schedule_delay = delay
 
 
 
@@ -91,8 +98,9 @@ class Job:
                     g.add_edge(src, dst)
                     g.vp.tasks[dst].add_input(g.vp.tasks[src].get_output())
         self.g = g
+        self.generate_graph_chains(g)
         self.vid_to_vtx = vid_to_vtx
-        gt.graph_draw(g, vertex_text=g.vertex_index, output="g.png")
+        #gt.graph_draw(g, vertex_text=g.vertex_index, output="g.png")
         return self
 
 
@@ -130,3 +138,138 @@ class Job:
                 ready.add(v)
                 self.g.vp.tasks[v].status = 'submitted'
         return [self.g.vp.tasks[r] for r in ready]
+
+
+    # RF-MSR B
+
+    def generate_graph_chains(self, g):
+        """
+        Generate a chain decomposition of the graph. This algorithm is not optimal,
+        but is quicker than the optimal O(v+e). It is by Simon, "An Improved Algorithm for Transitive 
+        Closure on Acyclic Graphs", TCS v58, i 1-3, 1988.
+        This is called by update_graph.
+        The result is stored in the TaskState of each task in the graph, in the 'color' and 'child_color'
+        attributes, and is sent to the worker for possible use in scheduling / data placement.
+        """
+        def DFS( current_ts, open_time, close_time, current_time, sorted_nodes=None):
+            """
+            Do a topological sort of the graph, following the 'dependents' links
+            Note that if the graph has multiple "starting points", nodes with no dependencies,
+            this will not traverse the entire graph. This is why we call DFS multiple times
+            below, from different starting_tasks.
+
+            Arguments:
+            current_ts -- a task structure
+            open_time  -- dictionary keyed by ts.key with the time the node was visited
+            close_time -- dictionary keyed by ts.key with the time when the node was finished.
+                          This, sorted in decreasing order, gives the topological sort.
+            current_time -- current step of the algorithm
+            sorted_nodes -- nodes in topological order
+            """
+            assert(not g.vp.tasks[current_ts].name in open_time)
+            open_time[g.vp.tasks[current_ts].name] = current_time
+            current_time += 1
+            for t in current_ts.out_neighbors():
+                print(f'{g.vp.tasks[current_ts].name} -> {g.vp.tasks[t].name}')
+                if (not g.vp.tasks[t].name in close_time):
+                    assert(not g.vp.tasks[t].name in open_time) #cycle!
+                    DFS(t, open_time, close_time, current_time, sorted_nodes)
+                else: #don't visit, node is closed (visited)
+                    assert(g.vp.tasks[t].name in open_time) #error (closed but never open!)
+            close_time[g.vp.tasks[current_ts].name] = current_time
+            current_time += 1
+            if (not sorted_nodes == None):
+                sorted_nodes.appendleft(current_ts)
+
+        # First, do a topological sort of the graph, starting at all of the nodes with no
+        # dependencies.
+        open_time = {}
+        close_time = {}
+        sorted_nodes = deque()
+        current_time = 0
+
+        starting_tasks = []
+        for v in g.vertices():
+            if v.in_degree() == 0:
+                starting_tasks.append(v)
+
+
+        for starting_ts in starting_tasks:
+            DFS(starting_ts, open_time, close_time, current_time, sorted_nodes)
+
+        #Now we do the chain partitioning. Will store the results in the task itself,
+        #in the color field.
+        # TODO: For now, assuming the nodes haven't been colored. It's possible that they
+        # would have been, in which case it would be good to extend the chains    
+
+        print("Chain Coloring...")
+        c = 1
+        # The topo order makes us start as far back as possible, and color all nodes
+        for v in sorted_nodes:
+            ts = g.vp.tasks[v]
+            if ts.color is not None:
+                continue
+            cur_v = v
+            current_ts = ts
+            current_ts.color = str(c)
+            current_ts.child_color = str(c)
+            # Follow the chain, coloring each node. Stop when we have no dependents,
+            #  or when all dependents have been colored (go_on = False at the end of the loop)
+            while True:
+                # Find the first non-colored dependent (*in topological order, this is important*)
+                #  color it, and follow it
+                #        +-------------------------+
+                #       /                           \
+                #    -- a ------- b ------ c ------ d --
+                #    The topo sort always prevents picking d first in this case, which would create 2 
+                #      chains instead of one: ad and bc. 
+                #    In the loop below, the topological sort is given by the reverse of the closing time
+                #      of the DFS done above.
+                # We also want to record the color of one of our children:
+                #   1. if there are multiple children, give preference to the one with the same
+                #    color as ours
+                #   2. if no children have our color (because they were all colored before), we
+                #    choose arbitrarily (the last one, just because we have to exhaust the list anyway)
+                go_on = False
+                if cur_v.out_degree() == 0:
+                    current_ts.child_color = current_ts.color
+                else:
+                    for dep_v in sorted(cur_v.out_neighbors(), key = lambda t:close_time[g.vp.tasks[t].name], reverse=True):
+                        dep_ts = g.vp.tasks[dep_v]
+                        if dep_ts.color is None:
+                            dep_ts.color = str(c)
+                            go_on = True
+                            break
+                        current_ts.child_color = dep_ts.color
+                print(" \"%s\" [style=filled fillcolor=\"/paired12/%s\" color=\"/paired12/%s\"]"%(current_ts.name, current_ts.color, current_ts.child_color))
+                if go_on:
+                    current_ts = dep_ts
+                    cur_v = dep_v
+                else:
+                    break
+            # Reached the end of the chain, next color
+            c += 1
+        #done coloring
+
+        #RF this is just for basic statistics about the graph
+        count_edges = 0
+        count_nodes_with_deps = 0
+        for v in g.vertices():
+            ts = g.vp.tasks[v]
+            if ts.color is None or ts.child_color is None:
+                print(" uncolored task: {}".format(ts.name))
+            e = v.in_degree()
+            if (e > 0):
+                count_nodes_with_deps += 1
+                count_edges += e
+
+        # This assumes that for every node with at least one dependency, then one of the inputs
+        # should be local if we are scheduling according to chains. 
+        print("Graph Stats: tasks: %d edges: %d min_local_hit: %d max_local_miss: %d"%(
+                        g.num_vertices(),
+                        count_edges,
+                        count_nodes_with_deps,
+                        count_edges - count_nodes_with_deps))
+
+        # RF-MSR E
+

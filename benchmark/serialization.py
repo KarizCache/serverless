@@ -9,6 +9,8 @@ K = 1 << 10
 M = 1 << 20
 G = 1 << 30
 
+# test for (1 int to larger size but still small less than 1K ) bytes with more that 10 or 20 rounds 
+# do the timestmap for a sequentice 
 sizes = [1*K, 128*K, 1*M, 2*M, 4*M, 16*M, 32*M, 64*M, 128*M, 256*M, 512*M, 768*M, 1*G, 2*G, 4*G, 6*G, 8*G, 10*G, 12*G, 14*G]
 repeat = 5
 dim2 = 1024

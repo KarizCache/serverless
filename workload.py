@@ -17,7 +17,7 @@ class Workload:
             job = Job(self.env)
             yield self.scheduler.put(next(self.jobs))
             print(f'Workload generator produced job {job} at {self.env.now}')
-            yield self.env.timeout(20000)
+            yield self.env.timeout(200000)
 
     def build_workload(self, fpath):
         jobs = []
