@@ -1,6 +1,6 @@
 workloads:
-        - graph: '/opt/dask-distributed/benchmark/stats/matrixmul_64k_x_4k_e97482b6.g'
-          execution: '/opt/dask-distributed/benchmark/stats/matrixmul_64k_x_4k_e97482b6.json'
+        - graph: '/opt/dask-distributed/benchmark/stats/svd_tall_skinny_matrix_2M_x_4k_0e5e3c70.g'
+          execution: '/opt/dask-distributed/benchmark/stats/svd_tall_skinny_matrix_2M_x_4k_0e5e3c70.json'
 topology:
    w1:
       executors: 32

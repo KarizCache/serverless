@@ -39,7 +39,7 @@ class Executor(object):
         self.transmit_time = 0
         self.compute_time = 0
 
-        self.serialization_policy = 'lazy'
+        self.serialization_policy = 'syncnodeser' # lazy syncwdeser syncnodeser
         self.deserialization_latency = utils.fit_deserialization();
 
         
@@ -61,6 +61,9 @@ class Executor(object):
             elif msg.rpc == 'localcache_response_data':
                 _type = 'local' 
                 deser_latency = 0
+                if self.serialization_policy == 'syncwdeser':
+                    deser_latency = self.deserialization_latency(msg.data['size']) 
+                    yield self.env.timeout(deser_latency)
                 print(f'{Fore.LIGHTGREEN_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from local cache at {self.env.now} {Style.RESET_ALL}')
             self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 'transfer_time': transfer_stop - transfer_start, 'type': _type, 'deserialization_time': deser_latency})
 
@@ -80,12 +83,16 @@ class Executor(object):
 
 
     def execute_function(self, task):
-        start = self.env.now
         data_size = 0
         local_read = 0
         remote_read = 0
         self.outstanding = {}
         self.timeoutstanding = {}
+
+        # incorporate the scheduling delay here:
+        yield self.env.timeout(task.schedule_delay)
+
+        start = self.env.now 
         for obj in task.inputs:
             self.outstanding[self.request_id] = self.env.event()
             self.timeoutstanding[self.request_id] = self.env.now
@@ -111,7 +118,7 @@ class Executor(object):
             self.request_id += 1
         yield simpy.events.AllOf(self.env, self.outstanding.values())
 
-        trnasfer_time = self.env.now - start
+        fetch_time = self.env.now - start
         transmit_time = 0
         deser_time = 0
         for eve in self.outstanding:
@@ -131,16 +138,23 @@ class Executor(object):
         if self.debug:
             print(f'{Fore.GREEN}Executor {self.hostname}:{self.port} writes object {task.obj} for {task.id} at {self.env.now} at {self.mem_port} {Style.RESET_ALL}')
         
-        if self.serialization_policy == 'sync':
+        serialization_start = self.env.now 
+        if self.serialization_policy == 'syncwdeser' or self.serialization_policy == 'syncnodeser':
             yield self.env.process(self.mem_port.insert(task.obj))
         elif self.serialization_policy == 'lazy':
             self.env.process(self.mem_port.insert(task.obj))
+        serialization_delay = self.env.now - serialization_start
+
+        task_endtoend_time = self.env.now - start
 
 
         # notify the completion of this task
         if self.debug:
             print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
-        task.completion_event.succeed(value={'transfer': transmit_time, 'cpu_time': task.exec_time, 'remote_read': remote_read, 'local_read': local_read, 'deserialization_time': deser_time})
+        task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 
+            'remote_read': remote_read, 'local_read': local_read, 
+            'deserialization_time': deser_time, 'serialization_time': serialization_delay,
+            'task_endtoend_delay': task_endtoend_time})
 
 
 class Worker:

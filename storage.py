@@ -46,7 +46,11 @@ class Cache:
             req = yield self.req_queue.get()
             #print(f'Cache {self.hostname} recieved fetch request {req.rpc} at {self.env.now}')
             key = req.data['obj']
-            size = yield self.env.process(self.peek(key))
+            if req.src == self.out_port.ip:
+                size = yield self.env.process(self.peek(key, wait=False))
+            else:
+                size = yield self.env.process(self.peek(key, wait=True))
+
             rpc = 'localcache_response_data' if req.src == self.out_port.ip else 'cache_response_data'
             resp = Request(time=self.env.now,
                         req_id= req.reqid, src=self.out_port.ip, sport=self.port,
@@ -62,25 +66,28 @@ class Cache:
 
     def insert(self, obj):
         ser_latency = self.serialization_latency(obj.size)
+        
+        # insert object into the cache 
+        self.cache[obj.name] = obj
         #print(f'Cache insertion for obj {obj.name} at {obj.size} serialization cost: {ser_latency}')
+        
         self.outstanding[obj.name] = self.env.event() 
         yield self.env.timeout(ser_latency)
         self.outstanding[obj.name].succeed(value={'size': obj.size})
         
-        # insert object into the cache 
-        self.cache[obj.name] = obj
         del self.outstanding[obj.name]
 
 
-    def peek(self, key):
+    def peek(self, key, wait=True):
         size = 0
-        if key in self.outstanding:
-            #print(f'Wait for {key} to be serialized in the cache')
-            yield self.outstanding[key]
         if key in self.cache:
             obj = self.cache[key]
             #print(f'{Fore.RED} Obj {obj.name}:{obj.size} exist in the cache {Style.RESET_ALL}')
             size = obj.size
+        
+        if key in self.outstanding and wait:
+            #print(f'Wait for {key} to be serialized in the cache')
+            yield self.outstanding[key]
         return size
 
 
