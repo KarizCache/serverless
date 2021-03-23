@@ -1,6 +1,6 @@
 benchmarks:
     output_dir: /local0/serverless-sim/results
-    path: /opt/dask-distributed/benchmark/stats/
+    path: /local0/serverless-sim/benchmark/stats/
     workloads:
         - matrixmul_64k_x_4k_e97482b6
         - matrixmul_10k_x_1k_afecf0c7
