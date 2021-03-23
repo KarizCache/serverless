@@ -12,7 +12,7 @@ from storage import Storage, Cache, Object
 from colorama import Fore, Style
 
 class Executor(object):
-    def __init__(self, env, ip, port, localcache, storage_host, hostname=None, debug=False):
+    def __init__(self, env, ip, port, localcache, storage_host, serialization, hostname=None, debug=False):
         self.request_id = 1
         self.env = env
         self.debug = debug
@@ -39,7 +39,10 @@ class Executor(object):
         self.transmit_time = 0
         self.compute_time = 0
 
-        self.serialization_policy = 'syncnodeser' # lazy syncwdeser syncnodeser
+        if serialization not in ['lazy', 'syncwdeser', 'syncnodeser']:
+            raise NameError(f'Serialization type: {serialization} is not supported.')
+        
+        self.serialization_policy = serialization # lazy syncwdeser syncnodeser
         self.deserialization_latency = utils.fit_deserialization();
 
         
@@ -158,7 +161,7 @@ class Executor(object):
 
 
 class Worker:
-    def __init__(self, env, name, ip, rate, executors, gateway, storage_host, memsize, cache_policy, cache_port):
+    def __init__(self, env, name, ip, rate, executors, gateway, storage_host, memsize, cache_policy, cache_port, serialization):
         self.hostname = name
         self.env = env;
         self.n_exec = executors
@@ -170,7 +173,7 @@ class Worker:
 
         self.executors = {}
         for i in range(executors):
-            self.executors[i] = Executor(env, hostname=name, ip=ip, port=5000+i, localcache=self.cache, storage_host=storage_host, debug=False)
+            self.executors[i] = Executor(env, hostname=name, ip=ip, port=5000+i, localcache=self.cache, storage_host=storage_host, serialization=serialization, debug=False)
             self.executors[i].out_port = self.nic
             self.nic.add_flow(self.executors[i].port, self.executors[i])
             self.executors[i].mem_port = self.cache 
@@ -191,17 +194,18 @@ class Cluster:
         self.storages = {}
         self.deploy_cluster(env, topology)
 
-    def deploy_cluster(self, env, fpath):
+
+    def deploy_cluster(self, env, configs):
         try:
-            data = yaml.load(open(fpath, 'r'), Loader=yaml.FullLoader)
-            topology = data['topology']
+            serialization = configs['cluster']['serialization']
+            topology = configs['topology']
             ''' Add nodes '''
             for name in topology:
                 node = topology[name]
                 name = node['name']
                 if node['type'] == 'worker':
                     worker = Worker(env = env, name=name, ip=node['ip'], rate=node['rate'], executors=node['executors'], 
-                            memsize=node['memory'], gateway=node['gateway'], 
+                            memsize=node['memory'], gateway=node['gateway'], serialization=serialization, 
                             storage_host=node['storage'], cache_policy=node['cache.policy'], cache_port=node['cache.port'])
                     self.workers[name] = worker
                 elif node['type'] == 'router':

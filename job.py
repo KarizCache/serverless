@@ -5,6 +5,7 @@ from collections import defaultdict, deque
 import graph_tool.all as gt
 import ast
 import json
+import re
 
 class Task:
     def __init__(self, env, job):
@@ -61,9 +62,11 @@ class Job:
         self.g = None
         self.completion_events = []
         self.vid_to_vtx = {}
+        self.name = None
 
     def build_job_from_file(self, gfile, histfile):
         name_to_task = {}
+        self.name = re.search(r'stats/(.*?)\.json', histfile).group(1)
         with open(histfile, 'r') as fd:
             taskstat = ast.literal_eval(fd.read())
             for name in taskstat:

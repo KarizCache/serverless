@@ -12,7 +12,7 @@ import timeit
 import json
 
 class Scheduler(object):
-    def __init__(self, env, cluster):
+    def __init__(self, env, cluster, configs):
         self.env = env
         self.job_queue = simpy.Store(env)
         self.task_queue = simpy.Store(env)
@@ -23,7 +23,8 @@ class Scheduler(object):
         self.hash_ring = HashRing(nodes=list(cluster.get_workers()))
         self.event_to_task = {}
         self.cache_controller = {}
-        self.policy = 'chain_color'
+        self.policy = configs['cluster']['scheduling']
+        self.logf = configs['benchmark']['log']
         self.transmit_time = 0
         self.cpu_time = 0
         self.local_read = 0
@@ -31,7 +32,10 @@ class Scheduler(object):
         self.deser_time = 0
         self.ser_time = 0 
         self.task_time = 0
-        self.stats = []
+        self.stats = {'tasks': [], 
+                'task_time': 0, 'ser_time': 0, 'deser_time': 0, 
+                'remote_read': 0, 'local_read': 0, 
+                'cpu_time': 0, 'transmit_time': 0}
 
 
 
@@ -59,18 +63,18 @@ class Scheduler(object):
         # mark task as completed
         task = self.event_to_task[event]
         task.set_status('finished')
-        self.transmit_time += event.value['transfer']
-        self.cpu_time += event.value['cpu_time']
-        self.remote_read += event.value['remote_read']
-        self.local_read += event.value['local_read']
-        self.deser_time += event.value['deserialization_time']
-        self.ser_time += event.value['serialization_time']
-        self.task_time += event.value['task_endtoend_delay'] 
+        self.stats['transmit_time'] += event.value['transfer']
+        self.stats['cpu_time'] += event.value['cpu_time']
+        self.stats['remote_read'] += event.value['remote_read']
+        self.stats['local_read'] += event.value['local_read']
+        self.stats['deser_time'] += event.value['deserialization_time']
+        self.stats['ser_time'] += event.value['serialization_time']
+        self.stats['task_time'] += event.value['task_endtoend_delay'] 
         #print(f'{Fore.LIGHTBLUE_EX}Task {task.id} is finished at {self.env.now}.{Style.RESET_ALL}')
         sched_start_time = timeit.default_timer()
         next_tasks = task.job.get_next_tasks(task)
         sched_finish_time = timeit.default_timer()
-        self.stats.append(event.value)
+        self.stats['tasks'].append(event.value)
 
         schedule_delay = sched_finish_time - sched_start_time
         # send next joba to the sescheduler 
@@ -89,12 +93,12 @@ class Scheduler(object):
         
         # wait for all tasks of this job to be done
         yield simpy.events.AllOf(self.env, completions)
-        print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now}, executin time: {self.env.now - start_time}, remote read: {self.remote_read}, local_read: {self.local_read}, transfer time: {self.transmit_time}, cput_time: {self.cpu_time} deserializaion time: {self.deser_time}, serialization time: {self.ser_time} {Style.RESET_ALL}')
+        #print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now}, executin time: {self.env.now - start_time}, remote read: {self.stats["remote_read"]}, local_read: {self.stats["local_read"]}, transfer time: {self.stats["transmit_time"]}, cput_time: {self.stats["cpu_time"]} deserializaion time: {self.stats["deser_time"]}, serialization time: {self.stats["ser_time"]} {Style.RESET_ALL}')
 
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished,executin time,remote read,local_read,transfer time,cput_time,deserializaion time,serialization time,task time {Style.RESET_ALL}')
-        print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now},{self.env.now - start_time},{self.remote_read},{self.local_read},{self.transmit_time},{self.cpu_time},{self.deser_time},{self.ser_time},{self.task_time} {Style.RESET_ALL}')
+        print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now},{self.env.now - start_time},{self.stats["remote_read"]},{self.stats["local_read"]},{self.stats["transmit_time"]},{self.stats["cpu_time"]},{self.stats["deser_time"]},{self.stats["ser_time"]},{self.stats["task_time"]} {Style.RESET_ALL}')
         
-        with open('simulator.log', 'w') as fd:
+        with open(self.logf, 'w') as fd:
             fd.write(json.dumps(self.stats))
 
 

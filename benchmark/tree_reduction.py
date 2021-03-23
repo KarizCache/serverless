@@ -11,9 +11,11 @@ import time
 import timeit
 import datetime
 
-
-size = 131072
-name = f'tree_reduction_{size}'
+MB=1<<20
+KB = 1<<10
+size = 16*KB
+size_s = '16KB'
+name = f'tree_reduction_{size_s}'
 
 
 client = Client('10.255.23.115:8786', name = name)
@@ -29,6 +31,6 @@ results = L[0].compute(scheduler='distributed')
 end = datetime.datetime.now()
 
 
-print(f'Tree reduction with size {size} is done in {end - start}')
+print(f'Tree reduction with size {size_s} is done in {end - start}')
 
 L[0].visualize(filename=f'{name}.png')

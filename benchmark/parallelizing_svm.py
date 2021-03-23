@@ -21,10 +21,10 @@ import datetime
 
 # Start the computation.
 n_samples_classification = 1000
-n_samples = 8000000
-chunks = n_samples//10
+n_samples = 100000000
+chunks = n_samples//20
 
-name = f'parallelizing_svm_8M_400k'
+name = f'parallelizing_svm_800k_40k'
 
 client = Client('10.255.23.115:8786')
 

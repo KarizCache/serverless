@@ -4,6 +4,7 @@
 from job import Job
 import itertools
 import yaml
+import json
 
 class Workload:
     def __init__(self, env, scheduler, fpath):
@@ -23,7 +24,7 @@ class Workload:
         jobs = []
         try:
             data = yaml.load(open(fpath, 'r'), Loader=yaml.FullLoader)
-            workload = data['workloads']
+            workload = data['benchmark']['workloads']
             jobs = [Job(self.env).build_job_from_file(w['graph'], w['execution']) for w in workload]
             print(jobs)
         except:

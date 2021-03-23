@@ -1,0 +1,22 @@
+benchmarks:
+    output_dir: /local0/serverless-sim/results
+    path: /opt/dask-distributed/benchmark/stats/
+    workloads:
+        - matrixmul_64k_x_4k_e97482b6
+        - matrixmul_10k_x_1k_afecf0c7
+        - tree_reduction_16KB_69bf3a06
+        - tree_reduction_1KB_551a0df1
+        - svd_tall_skinny_matrix_400k_x_20k_0815466e
+        - svd_tall_skinny_matrix_2M_x_4k_0e5e3c70
+        - svd_tall_skinny_matrix_2M_x_2k_65fee51c
+        - 1a899e63_8380
+        - c1186f35_837e
+cluster:
+   configs: /local0/serverless-sim/configs/config.4n1c.yaml
+   policy:
+      serialization:
+        - lazy 
+        - syncwdeser 
+        - syncnodeser
+      scheduling: 
+        - chain_color
