@@ -22,11 +22,12 @@ class Object:
 
 
 class Cache:
-    def __init__(self, env, size, policy, port, hostname=None):
+    def __init__(self, env, size, policy, port, serialization_policy, hostname=None):
         self.env = env
         self.eviction_policy = policy # This could be LRU, LRU, Fifo. Lets go with Fifo
         self.hostname = hostname
         self.size = size
+        self.serialization_policy = serialization_policy
         self.queue = queue.Queue(size)
         self.req_queue = simpy.Store(env)
         self.cache = {}
@@ -46,21 +47,21 @@ class Cache:
             req = yield self.req_queue.get()
             #print(f'Cache {self.hostname} recieved fetch request {req.rpc} at {self.env.now}')
             key = req.data['obj']
-            if req.src == self.out_port.ip:
-                size = yield self.env.process(self.peek(key, wait=False))
+            if req.src == self.out_port.ip and self.serialization_policy != 'syncwdeser':
+                size, ser_wait_time = yield self.env.process(self.peek(key, wait=False))
             else:
-                size = yield self.env.process(self.peek(key, wait=True))
+                size, ser_wait_time = yield self.env.process(self.peek(key, wait=True))
 
             rpc = 'localcache_response_data' if req.src == self.out_port.ip else 'cache_response_data'
             resp = Request(time=self.env.now,
                         req_id= req.reqid, src=self.out_port.ip, sport=self.port,
                         dst = req.src, dport= req.sport,
-                        rpc = rpc, data = {'obj': key, 'size' : size, 'status': 'hit'})\
+                        rpc = rpc, data = {'obj': key, 'size' : size, 'ser_wait': ser_wait_time, 'status': 'hit'})\
                                 if size else\
                                 Request(time=self.env.now,
                                         req_id= req.reqid, src=self.out_port.ip, sport=self.port,
                                         dst = req.src, dport= req.sport,
-                                        rpc = rpc, data = {'obj': key, 'size': 0, 'status': 'miss'})
+                                        rpc = rpc, data = {'obj': key, 'size': 0, 'ser_wait': ser_wait_time, 'status': 'miss'})
             self.out_port.put(resp)
 
 
@@ -85,10 +86,13 @@ class Cache:
             #print(f'{Fore.RED} Obj {obj.name}:{obj.size} exist in the cache {Style.RESET_ALL}')
             size = obj.size
         
+        ser_wait_time = 0
         if key in self.outstanding and wait:
-            #print(f'Wait for {key} to be serialized in the cache')
+            wait_start = self.env.now
             yield self.outstanding[key]
-        return size
+            ser_wait_time = self.env.now - wait_start
+            print(f'Wait for {key} to be serialized in the cache: {ser_wait_time}')
+        return size, ser_wait_time
 
 
 

@@ -1,8 +1,8 @@
 benchmark:
-  log: /local0/serverless-sim/results/c1186f35_837e.syncnodeser.chain_color.log
+  log: /local0/serverless-sim/results/svm_parallelization_c1186f35_837e.syncnodeser.chain_color.log
   workloads:
-  - execution: /opt/dask-distributed/benchmark/stats/c1186f35_837e.json
-    graph: /opt/dask-distributed/benchmark/stats/c1186f35_837e.g
+  - execution: /local0/serverless-sim/benchmark/stats/svm_parallelization_c1186f35_837e.json
+    graph: /local0/serverless-sim/benchmark/stats/svm_parallelization_c1186f35_837e.g
 cluster:
   scheduling: chain_color
   serialization: syncnodeser

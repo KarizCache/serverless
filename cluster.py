@@ -60,15 +60,15 @@ class Executor(object):
                 _type = 'remote'
                 deser_latency = self.deserialization_latency(msg.data['size']) 
                 yield self.env.timeout(deser_latency)
-                print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport},{msg.reqid} at {self.env.now} {Style.RESET_ALL}')
+                #print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport},{msg.reqid} at {self.env.now} {Style.RESET_ALL}')
             elif msg.rpc == 'localcache_response_data':
                 _type = 'local' 
                 deser_latency = 0
                 if self.serialization_policy == 'syncwdeser':
                     deser_latency = self.deserialization_latency(msg.data['size']) 
                     yield self.env.timeout(deser_latency)
-                print(f'{Fore.LIGHTGREEN_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from local cache at {self.env.now} {Style.RESET_ALL}')
-            self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 'transfer_time': transfer_stop - transfer_start, 'type': _type, 'deserialization_time': deser_latency})
+                #print(f'{Fore.LIGHTGREEN_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from local cache at {self.env.now} {Style.RESET_ALL}')
+            self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 'transfer_time': transfer_stop - transfer_start, 'type': _type, 'deserialization_time': deser_latency, 'ser_wait_time': msg.data['ser_wait']})
 
 
     def submit(self, task):
@@ -124,9 +124,11 @@ class Executor(object):
         fetch_time = self.env.now - start
         transmit_time = 0
         deser_time = 0
+        ser_time = 0
         for eve in self.outstanding:
             val = self.outstanding[eve].value
             transmit_time += self.outstanding[eve].value['transfer_time']
+            ser_time += self.outstanding[eve].value['ser_wait_time']
             data_size += self.outstanding[eve].value['size']
             if self.outstanding[eve].value['type'] == 'remote':
                 remote_read += self.outstanding[eve].value['size']
@@ -141,6 +143,7 @@ class Executor(object):
         if self.debug:
             print(f'{Fore.GREEN}Executor {self.hostname}:{self.port} writes object {task.obj} for {task.id} at {self.env.now} at {self.mem_port} {Style.RESET_ALL}')
         
+        #print(ser_time)
         serialization_start = self.env.now 
         if self.serialization_policy == 'syncwdeser' or self.serialization_policy == 'syncnodeser':
             yield self.env.process(self.mem_port.insert(task.obj))
@@ -157,7 +160,7 @@ class Executor(object):
         task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 
             'remote_read': remote_read, 'local_read': local_read, 
             'deserialization_time': deser_time, 'serialization_time': serialization_delay,
-            'task_endtoend_delay': task_endtoend_time})
+            'task_endtoend_delay': task_endtoend_time, 'write': task.obj.size, 'wait_for_serialization': ser_time})
 
 
 class Worker:
@@ -167,7 +170,7 @@ class Worker:
         self.n_exec = executors
         self.nic = NetworkInterface(env, name=name, ip=ip, rate=rate, gateway=gateway)
 
-        self.cache = Cache(env=self.env, size=memsize, policy=cache_policy, port=cache_port, hostname=self.hostname)
+        self.cache = Cache(env=self.env, size=memsize, policy=cache_policy, port=cache_port, hostname=self.hostname, serialization_policy=serialization)
         self.nic.add_flow(self.cache.port, self.cache)
         self.cache.out_port = self.nic
 

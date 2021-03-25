@@ -41,3 +41,5 @@ for sched_policy in params['cluster']['policy']['scheduling']:
             result = subprocess.run(['/local0/serverless-sim/run.py', '--config', cluster_conf_path])
             #print(json.dumps(cluster_configs, indent=4))
             #break
+        #break
+    #break
