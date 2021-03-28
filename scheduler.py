@@ -94,6 +94,8 @@ class Scheduler(object):
         # wait for all tasks of this job to be done
         yield simpy.events.AllOf(self.env, completions)
         #print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now}, executin time: {self.env.now - start_time}, remote read: {self.stats["remote_read"]}, local_read: {self.stats["local_read"]}, transfer time: {self.stats["transmit_time"]}, cput_time: {self.stats["cpu_time"]} deserializaion time: {self.stats["deser_time"]}, serialization time: {self.stats["ser_time"]} {Style.RESET_ALL}')
+        
+        self.stats['execution_time'] = self.env.now - start_time
 
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished,executin time,remote read,local_read,transfer time,cput_time,deserializaion time,serialization time,task time {Style.RESET_ALL}')
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now},{self.env.now - start_time},{self.stats["remote_read"]},{self.stats["local_read"]},{self.stats["transmit_time"]},{self.stats["cpu_time"]},{self.stats["deser_time"]},{self.stats["ser_time"]},{self.stats["task_time"]} {Style.RESET_ALL}')

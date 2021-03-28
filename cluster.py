@@ -158,7 +158,7 @@ class Executor(object):
         if self.debug:
             print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
         task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 
-            'remote_read': remote_read, 'local_read': local_read, 
+            'remote_read': remote_read, 'local_read': local_read, 'fetch_time': fetch_time, 
             'deserialization_time': deser_time, 'serialization_time': serialization_delay,
             'task_endtoend_delay': task_endtoend_time, 'write': task.obj.size, 'wait_for_serialization': ser_time})
 

@@ -1,11 +1,11 @@
 benchmark:
-  log: /local0/serverless-sim/results/svm_parallelization_c1186f35_837e.syncnodeser.chain_color.log
+  log: /local0/serverless-sim/results/matrixmul_64k_x_4k_e97482b6.lazy.chain_color.log
   workloads:
-  - execution: /local0/serverless-sim/benchmark/stats/svm_parallelization_c1186f35_837e.json
-    graph: /local0/serverless-sim/benchmark/stats/svm_parallelization_c1186f35_837e.g
+  - execution: /local0/serverless-sim/benchmark/stats/matrixmul_64k_x_4k_e97482b6.json
+    graph: /local0/serverless-sim/benchmark/stats/matrixmul_64k_x_4k_e97482b6.g
 cluster:
   scheduling: chain_color
-  serialization: syncnodeser
+  serialization: lazy
 topology:
   r1:
     gateway: r3
