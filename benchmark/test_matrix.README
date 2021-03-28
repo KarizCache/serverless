@@ -1,0 +1,19 @@
+This is the test we have been using for serverless dask.
+There are 2 different tests: shuffle and aggregate
+
+This code is originally written by Sam Ginsburg and Charles Lin,
+interns at MSR in 2020.
+
+Some modifications by Rodrigo Fonseca.
+
+The _vanilla version can run on vanilla dask.
+The other version requires an instrumented dask for timing info.
+
+The size of the test is controlled by two parameters: par and mem
+mem is the largest amount of memory for each worker, and par is the
+number of partitions.
+
+Most initial results were done with shuffle, par=4, and varying
+memory from 128 to 2048 (MB) per node.
+
+

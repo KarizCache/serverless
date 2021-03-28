@@ -1,0 +1,10 @@
+Some measurements from the serverless dask cluster at Azure
+
+* 4 nodes with 32 cores, Azure type Standard_D32s_v3
+https://docs.microsoft.com/en-us/azure/virtual-machines/dv3-dsv3-series
+Size,    vCPU,    Memory:GiB, Temp storage (SSD) GiB,  Max data disks, Max temp storage throughput: IOPS/Read MBps/Write MBps,  Max NICs/Network bandwidth
+
+Standard_D32_v3 32  128 800 32  48000/750/375   8/16000
+
+Measured BW: ~600MB/s per flow
+
