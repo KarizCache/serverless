@@ -22,6 +22,9 @@ class Task:
         self.job = job
         self.color = None
         self.child_color = None
+        self.worker = None
+        self.start_ts = 0
+        self.end_ts = 0
 
 
     def set_output_size(self, size):
@@ -126,6 +129,9 @@ class Job:
                     break
             if is_ready:
                 ready.add(vo)
+        for r in ready:
+            self.g.vp.tasks[r].start_ts = self.env.now
+
         return [self.g.vp.tasks[r] for r in ready]
 
 
@@ -205,6 +211,7 @@ class Job:
         # TODO: For now, assuming the nodes haven't been colored. It's possible that they
         # would have been, in which case it would be good to extend the chains    
 
+        cfd = open(f'/local0/serverless-sim/results/{self.name}.simcolors', 'w')
         print("Chain Coloring...")
         c = 1
         # The topo order makes us start as far back as possible, and color all nodes
@@ -245,6 +252,7 @@ class Job:
                             break
                         current_ts.child_color = dep_ts.color
                 print(" \"%s\" [style=filled fillcolor=\"/paired12/%s\" color=\"/paired12/%s\"]"%(current_ts.name, current_ts.color, current_ts.child_color))
+                cfd.write(f'{current_ts.name},{current_ts.color}\n')
                 if go_on:
                     current_ts = dep_ts
                     cur_v = dep_v
@@ -253,7 +261,7 @@ class Job:
             # Reached the end of the chain, next color
             c += 1
         #done coloring
-
+        cfd.close()
         #RF this is just for basic statistics about the graph
         count_edges = 0
         count_nodes_with_deps = 0
