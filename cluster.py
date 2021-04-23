@@ -8,8 +8,34 @@ import yaml
 import json
 import simpy
 import itertools
+import queue
 from storage import Storage, Cache, Object
 from colorama import Fore, Style
+
+
+class CPU(object):
+    def __init__(self, env):
+        self.env = env
+        self.slot = 1
+        self.proc_queue = simpy.Store(env)
+        env.process(self.execute())
+        pass
+
+    def put(self, task):
+        yield self.proc_queue.put(task)
+
+    def execute(self):
+        while True:
+            task = yield self.proc_queue.get()
+            wait_time = task.remaining_exec_time if task.remaining_exec_time < self.slot else self.slot
+            yield env.timeout(wait_time)
+            task.remaining_exec_time -= wait_time
+            if task.remaining_exec_time:
+                task.put(self.proc_queue)
+            else:
+                task.computation_event.succeed()
+
+
 
 class Executor(object):
     def __init__(self, env, ip, port, localcache, storage_host, serialization, hostname=None, debug=False):
@@ -22,6 +48,7 @@ class Executor(object):
         self.storage_ip, self.storage_port = storage_host.split(':')
         self.storage_port = int(self.storage_port)
 
+        self.cpu = CPU(env)
         self.mem_port = None
         
         self.out_port = None
@@ -44,6 +71,9 @@ class Executor(object):
         
         self.serialization_policy = serialization # lazy syncwdeser syncnodeser
         self.deserialization_latency = utils.fit_deserialization();
+
+        self.active_task = []
+        pass
 
         
     def put(self, msg):
@@ -75,12 +105,12 @@ class Executor(object):
         if self.debug:
             print(f'Submit task {task} to executor {self.hostname}:{self.port} at {self.env.now}')
         yield self.task_queue.put(task)
-        return
 
 
     def control_plane(self):
         while True:
             task = yield self.task_queue.get()
+            print(f'worker {self.hostname} recieve task {task} at {self.env.now}')
             execute_proc = self.env.process(self.execute_function(task))
             yield execute_proc
 
@@ -137,7 +167,8 @@ class Executor(object):
             deser_time += self.outstanding[eve].value['deserialization_time']
 
         #process data
-        yield self.env.timeout(task.exec_time)
+        self.cpu.put(task)
+        yield simpy.events.AllOf(self.env, [task.computation_completion_event])
 
         # write data
         if self.debug:
@@ -249,6 +280,8 @@ class Cluster:
         return self.workers.keys()
 
     def submit_task(self, wid, task):
+        #print(self.workers)
+        print(f'task {Fore.YELLOW} {task.name} {Fore.WHITE} is executed on {Fore.GREEN} {wid} {Fore.WHITE} for {Fore.RED}{task.exec_time} at {Fore.BLUE} {self.env.now} {Style.RESET_ALL}')
         self.workers[wid].submit_task(task)
 
 

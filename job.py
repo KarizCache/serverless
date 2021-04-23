@@ -15,9 +15,11 @@ class Task:
         self.id = 0
         self.name = ''
         self.exec_time = 0
+        self.remaining_exec_time = 0
         self.schedule_delay = 0
         self.nbytes = 0
         self.obj = None
+        self.computation_completion_event = env.event()
         self.completion_event = env.event()
         self.job = job
         self.color = None
@@ -33,7 +35,8 @@ class Task:
 
 
     def set_exec_time(self, time, start=0, stop=0):
-        self.exec_time = time
+        self.exec_time = int(time*10000)
+        self.remaining_exec_time = int(time*10000)
         self.start = start
         self.stop = stop
 
@@ -179,7 +182,7 @@ class Job:
             open_time[g.vp.tasks[current_ts].name] = current_time
             current_time += 1
             for t in current_ts.out_neighbors():
-                print(f'{g.vp.tasks[current_ts].name} -> {g.vp.tasks[t].name}')
+                #print(f'{g.vp.tasks[current_ts].name} -> {g.vp.tasks[t].name}')
                 if (not g.vp.tasks[t].name in close_time):
                     assert(not g.vp.tasks[t].name in open_time) #cycle!
                     DFS(t, open_time, close_time, current_time, sorted_nodes)
@@ -251,7 +254,7 @@ class Job:
                             go_on = True
                             break
                         current_ts.child_color = dep_ts.color
-                print(" \"%s\" [style=filled fillcolor=\"/paired12/%s\" color=\"/paired12/%s\"]"%(current_ts.name, current_ts.color, current_ts.child_color))
+                #print(" \"%s\" [style=filled fillcolor=\"/paired12/%s\" color=\"/paired12/%s\"]"%(current_ts.name, current_ts.color, current_ts.child_color))
                 cfd.write(f'{current_ts.name},{current_ts.color}\n')
                 if go_on:
                     current_ts = dep_ts
