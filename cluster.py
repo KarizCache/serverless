@@ -22,16 +22,21 @@ class CPU(object):
         pass
 
     def put(self, task):
-        yield self.proc_queue.put(task)
+        # take every tasks in the queue 
+        #       for each task, check how much is passed 
+        # cancel the previous event.
+        # take the task with minimum rematings time and set the timeout for that. 
+        print(f'CPU recieved {task}')
+        return self.proc_queue.put(task)
 
     def execute(self):
         while True:
             task = yield self.proc_queue.get()
             wait_time = task.remaining_exec_time if task.remaining_exec_time < self.slot else self.slot
-            yield env.timeout(wait_time)
+            yield self.env.timeout(wait_time)
             task.remaining_exec_time -= wait_time
             if task.remaining_exec_time:
-                task.put(self.proc_queue)
+                self.proc_queue.put(task)
             else:
                 task.computation_event.succeed()
 
