@@ -51,6 +51,7 @@ class Task:
         self.name = name
         self.obj.name = self.name
 
+
     def set_id(self, id):
         self.id = id 
 
@@ -124,18 +125,28 @@ class Job:
         assert(task.status == 'finished')
         v = self.vid_to_vtx[task.id]
         ready = set()
+        prefetch = []
         for vo in v.out_neighbors():
             is_ready = True
             for vi in vo.in_neighbors():
                 if self.g.vp.tasks[vi].status != 'finished':
                     is_ready = False
                     break
-            if is_ready:
+           
+           if is_ready:
                 ready.add(vo)
+            elif self.g.vp.tasks[vo].color != self.g.vp.tasks[v].color:
+                pt = Task(self.env, self.job) # prefetch task
+                pt.add_input(self.g.vp.tasks[v].get_output())
+                pt.color = self.g.vp.tasks[vo].color
+                pt.name = 'NOP'
+                prefetch.add(pt)
         for r in ready:
             self.g.vp.tasks[r].start_ts = self.env.now
-
-        return [self.g.vp.tasks[r] for r in ready]
+        to_be_sent = [self.g.vp.tasks[r] for r in ready]
+        for pt in prefetch:
+            to_be_sent.append(pt)
+        return to_be_sent
 
 
     def get_ready_tasks(self):
@@ -149,7 +160,16 @@ class Job:
             if is_ready:
                 ready.add(v)
                 self.g.vp.tasks[v].status = 'submitted'
-        return [self.g.vp.tasks[r] for r in ready]
+            elif self.g.vp.tasks[vo].color != self.g.vp.tasks[v].color:
+                pt = Task(self.env, self.job) # prefetch task
+                pt.add_input(self.g.vp.tasks[v].get_output())
+                pt.color = self.g.vp.tasks[vo].color
+                pt.name = 'NOP'
+                prefetch.add(pt)
+        to_be_sent = [self.g.vp.tasks[r] for r in ready]
+        for pt in prefetch:
+            to_be_sent.append(pt)
+        return to_be_sent
 
 
     # RF-MSR B
