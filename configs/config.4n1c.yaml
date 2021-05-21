@@ -1,11 +1,12 @@
 benchmark:
-  log: /local0/serverless-sim/results/d47b4702_9ef6.syncwdeser.chain_color.log
+  log: /local0/serverless/serverless-sim/results/tree_reduction_dag.syncwdeser.chain_color.log
   workloads:
-  - execution: /opt/dask-distributed/benchmark/stats/d47b4702_9ef6.json
-    graph: /opt/dask-distributed/benchmark/stats/d47b4702_9ef6.g
+  - execution: ./stats/tree_reduction_dag.json   #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.json
+    graph: ./stats/tree_reduction_dag.g #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.g
 cluster:
   scheduling: chain_color
   serialization: syncwdeser
+  prefetch: 0
 topology:
   r1:
     gateway: r3
@@ -40,9 +41,9 @@ topology:
   w1:
     cache.policy: FIFO
     cache.port: 9001
-    executors: 32
+    executors: 1
     gateway: r1
-    ip: 192.168.1.2
+    ip: 192.168.1.10
     memory: 322000000
     name: w1
     rate: 2684354560
@@ -51,9 +52,9 @@ topology:
   w2:
     cache.policy: FIFO
     cache.port: 9001
-    executors: 32
+    executors: 1
     gateway: r1
-    ip: 192.168.1.3
+    ip: 192.168.1.203
     memory: 322000000
     name: w2
     rate: 2684354560
@@ -62,9 +63,9 @@ topology:
   w3:
     cache.policy: FIFO
     cache.port: 9001
-    executors: 32
+    executors: 1
     gateway: r1
-    ip: 192.168.1.4
+    ip: 192.168.1.44
     memory: 322000000
     name: w3
     rate: 2684354560
@@ -73,9 +74,9 @@ topology:
   w4:
     cache.policy: FIFO
     cache.port: 9001
-    executors: 32
+    executors: 1
     gateway: r1
-    ip: 192.168.1.5
+    ip: 192.168.1.165
     memory: 322000000
     name: w4
     rate: 2684354560

@@ -7,7 +7,7 @@ from cluster import Cluster
 import argparse
 import yaml
 
-config = '/local0/serverless-sim/configs/config.4n1c.yaml' 
+config = '/local0/serverless/serverless-sim/configs/config.4n1c.yaml' 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', help='path to the configuration file for running this experiment.',

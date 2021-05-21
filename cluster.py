@@ -14,31 +14,70 @@ from colorama import Fore, Style
 
 
 class CPU(object):
-    def __init__(self, env):
+    def __init__(self, env, hostname):
         self.env = env
         self.slot = 1
+        self.hostname = hostname
         self.proc_queue = simpy.Store(env)
+        self.running_tasks = {}
         env.process(self.execute())
+        self.current_event = None
         pass
 
+
+    def update_running_tasks_stats(self):
+        # update the progress of the running tasks
+        n_tasks = len(self.running_tasks)
+        for key in self.running_tasks:
+            ts = self.running_tasks[key]
+            ts.stats.exectuion_history.append({'start': ts.stats.cur_exec_rate_start, 'end': self.env.now, 'n_tasks': n_tasks, 'progress': ts.stats.progress})
+            coretime_progress = round((self.env.now - ts.stats.cur_exec_rate_start)/n_tasks, 6)
+            ts.stats.progress += coretime_progress;
+
+
+    def update_task_time(self):
+        n_tasks = len(self.running_tasks)
+        for key in self.running_tasks:
+            ts = self.running_tasks[key]
+            ts.stats.cur_exec_rate_start = self.env.now
+            ts.estimated_finish_time = self.env.now + (ts.exec_time - ts.stats.progress)*n_tasks;
+
+        # get the task with the minimum estimated finish time to set the timer for. 
+        if not len(self.running_tasks): return None
+        return min(self.running_tasks.values())
+
     def put(self, task):
-        # take every tasks in the queue 
-        #       for each task, check how much is passed 
+        #print(f'task {task} is recieved by {self.hostname} at {self.env.now} ')
+        self.update_running_tasks_stats();
+        
+        # update the estimated finish time
+        self.running_tasks[task] = task
+        
+        ts_next = self.update_task_time()
+        if not ts_next: return 
+        if self.current_event and self.current_event.triggered:
+            # Interrupt charging if not already done.
+            self.current_event.interrupt('Need to go!')
         # cancel the previous event.
-        # take the task with minimum rematings time and set the timeout for that. 
-        print(f'CPU recieved {task}')
-        return self.proc_queue.put(task)
+        return self.proc_queue.put(ts_next)
+
 
     def execute(self):
         while True:
-            task = yield self.proc_queue.get()
-            wait_time = task.remaining_exec_time if task.remaining_exec_time < self.slot else self.slot
-            yield self.env.timeout(wait_time)
-            task.remaining_exec_time -= wait_time
-            if task.remaining_exec_time:
-                self.proc_queue.put(task)
-            else:
-                task.computation_event.succeed()
+            ts = yield self.proc_queue.get()
+            try:
+                print(f'{Fore.BLUE} {self.env.now}: {Fore.GREEN} {self.hostname} {Style.RESET_ALL} has scheduled task {Fore.YELLOW} {ts} {Style.RESET_ALL} to be finished at {ts.estimated_finish_time}')
+                self.current_event = yield self.env.timeout(ts.estimated_finish_time)
+
+                ts.computation_completion_event.succeed()
+                self.update_running_tasks_stats()
+                del self.running_tasks[ts]
+                ts_next = self.update_task_time()
+                if ts_next:
+                    self.proc_queue.put(ts_next)
+            except simpy.Interrupt as i:
+                print('Bat. ctrl. interrupted at', env.now, 'msg:', i.cause)
+
 
 
 
@@ -53,7 +92,7 @@ class Executor(object):
         self.storage_ip, self.storage_port = storage_host.split(':')
         self.storage_port = int(self.storage_port)
 
-        self.cpu = CPU(env)
+        self.cpu = CPU(env, hostname)
         self.mem_port = None
         
         self.out_port = None
@@ -115,9 +154,9 @@ class Executor(object):
     def control_plane(self):
         while True:
             task = yield self.task_queue.get()
-            print(f'worker {self.hostname} recieve task {task} at {self.env.now}')
+            print(f'task {Fore.YELLOW} {task.name} {Fore.WHITE} is executed on {Fore.GREEN}{self.hostname} {Fore.WHITE} for {Fore.RED}{task.exec_time} at {Fore.BLUE} {self.env.now} {Style.RESET_ALL}')
             execute_proc = self.env.process(self.execute_function(task))
-            yield execute_proc
+            #yield execute_proc
 
 
     def execute_function(self, task):
@@ -180,12 +219,14 @@ class Executor(object):
             print(f'{Fore.GREEN}Executor {self.hostname}:{self.port} writes object {task.obj} for {task.id} at {self.env.now} at {self.mem_port} {Style.RESET_ALL}')
         
         #print(ser_time)
-        serialization_start = self.env.now 
-        if self.serialization_policy == 'syncwdeser' or self.serialization_policy == 'syncnodeser':
-            yield self.env.process(self.mem_port.insert(task.obj))
-        elif self.serialization_policy == 'lazy':
-            self.env.process(self.mem_port.insert(task.obj))
-        serialization_delay = self.env.now - serialization_start
+        serialization_delay = 0
+        if task.name != 'NOP':
+            serialization_start = self.env.now 
+            if self.serialization_policy == 'syncwdeser' or self.serialization_policy == 'syncnodeser':
+                yield self.env.process(self.mem_port.insert(task.obj))
+            elif self.serialization_policy == 'lazy':
+                self.env.process(self.mem_port.insert(task.obj))
+            serialization_delay = self.env.now - serialization_start
 
         task_endtoend_time = self.env.now - start
 
@@ -195,9 +236,9 @@ class Executor(object):
             print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
         task.end_ts = self.env.now
         task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 
-            'remote_read': remote_read, 'local_read': local_read, 'fetch_time': fetch_time, 'start_ts': task.start_ts, 'worker': task.worker, 
-            'deserialization_time': deser_time, 'serialization_time': serialization_delay, 'end_ts': task.end_ts,
-            'task_endtoend_delay': task_endtoend_time, 'write': task.obj.size, 'wait_for_serialization': ser_time})
+            'remote_read': remote_read, 'local_read': local_read, 'fetch_time': fetch_time, 'start_ts': task.stats.start_time, 'worker': task.worker, 
+            'deserialization_time': deser_time, 'serialization_time': serialization_delay, 'end_ts': task.stats.end_time,
+            'task_endtoend_delay': task_endtoend_time, 'write': task.obj.size if task.obj else 0, 'wait_for_serialization': ser_time})
 
 
 class Worker:
@@ -222,9 +263,11 @@ class Worker:
 
 
     def submit_task(self, task):
-        task.obj.who_has = f'{self.nic.ip}:{self.cache.port}'
+        if task.obj: 
+            task.obj.who_has = f'{self.nic.ip}:{self.cache.port}'
         task.worker = self.nic.ip
         self.env.process(self.executors[next(self.exec_it)].submit(task))
+        #self.executors[next(self.exec_it)].submit(task)
 
 
 class Cluster:
@@ -245,6 +288,7 @@ class Cluster:
                 node = topology[name]
                 name = node['name']
                 if node['type'] == 'worker':
+                    name = node['ip']
                     worker = Worker(env = env, name=name, ip=node['ip'], rate=node['rate'], executors=node['executors'], 
                             memsize=node['memory'], gateway=node['gateway'], serialization=serialization, 
                             storage_host=node['storage'], cache_policy=node['cache.policy'], cache_port=node['cache.port'])
@@ -276,7 +320,7 @@ class Cluster:
                 storage.nic.out = gateway
                 gateway.connect(storage.nic)
         except:
-            raise  
+            raise 
 
     def worker_count(self):
         return len(self.workers)
@@ -286,7 +330,6 @@ class Cluster:
 
     def submit_task(self, wid, task):
         #print(self.workers)
-        print(f'task {Fore.YELLOW} {task.name} {Fore.WHITE} is executed on {Fore.GREEN} {wid} {Fore.WHITE} for {Fore.RED}{task.exec_time} at {Fore.BLUE} {self.env.now} {Style.RESET_ALL}')
         self.workers[wid].submit_task(task)
 
 

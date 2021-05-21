@@ -116,6 +116,7 @@ class Scheduler(object):
             return self.hash_ring.get_node(task.obj.name)
         if self.policy == 'chain_color':
             assert(task)
+            #print(f'task {Fore.YELLOW}{task.name}{Style.RESET_ALL}, the color is {Fore.LIGHTYELLOW_EX}{task.color}{Style.RESET_ALL}')
             return self.hash_ring.get_node(task.color)
         if self.policy == 'manias':
             pass
@@ -124,10 +125,9 @@ class Scheduler(object):
 
     def submit_task(self, task):
         w = self.decide_worker() if not (self.policy == 'consistent_hash' or self.policy=='chain_color') else self.decide_worker(task)
-        task.obj.who_has = w
-        self.event_to_task[task.completion_event] = task
-        task.completion_event.callbacks.append(self.task_finished_cb)
+        if task.name != 'NOP': 
+            task.obj.who_has = w # set the current worker as the owner of this task. 
+            self.event_to_task[task.completion_event] = task
+            task.completion_event.callbacks.append(self.task_finished_cb)
+            self.cache_controller[task.obj] = w
         self.cluster.submit_task(w, task)
-        self.cache_controller[task.obj] = w
-
-

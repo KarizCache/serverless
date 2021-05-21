@@ -8,14 +8,21 @@ import json
 import re
 
 class Task:
+    class Stats:
+        def __init__(self):
+            self.start_time = -1
+            self.end_time = -1
+            self.cur_exec_rate_start = -1;
+            self.progress = 0
+            self.estimated_finish_time = 0 
+            self.exectuion_history =[]; # this should be a list of {'start of plan', 'end of plan', 'progress at the begining of plan', # of concurrent running task during plan, estimated end time}
+
     def __init__(self, env, job):
         self.env = env
-        self.status = 'waiting' 
         self.inputs = []
         self.id = 0
         self.name = ''
         self.exec_time = 0
-        self.remaining_exec_time = 0
         self.schedule_delay = 0
         self.nbytes = 0
         self.obj = None
@@ -25,9 +32,20 @@ class Task:
         self.color = None
         self.child_color = None
         self.worker = None
-        self.start_ts = 0
-        self.end_ts = 0
+        self.status = 'waiting' 
+        self.stats = self.Stats()
 
+    def __str__(self):
+        return f'{self.name}'
+
+    def __repr__(self):
+        return f'{self.name}'
+
+    def __lt__(self, other):
+         return self.stats.estimated_finish_time < other.stats.estimated_finish_time
+
+    def __gt__(self, other):
+         return self.stats.estimated_finish_time > other.stats.estimated_finish_time
 
     def set_output_size(self, size):
         self.nbytes = size
@@ -35,10 +53,7 @@ class Task:
 
 
     def set_exec_time(self, time, start=0, stop=0):
-        self.exec_time = int(time*10000)
-        self.remaining_exec_time = int(time*10000)
-        self.start = start
-        self.stop = stop
+        self.exec_time = int(time)
 
     def add_input(self, obj):
         self.inputs.append(obj)
@@ -64,12 +79,16 @@ class Task:
 
 
 class Job:
-    def __init__(self, env):
+    def __init__(self, env, prefetch):
         self.env = env
         self.g = None
         self.completion_events = []
         self.vid_to_vtx = {}
         self.name = None
+        self.prefetch_enabled = prefetch
+
+    def __str__(self):
+        return f'{self.name}'
 
     def build_job_from_file(self, gfile, histfile):
         name_to_task = {}
@@ -132,15 +151,16 @@ class Job:
                 if self.g.vp.tasks[vi].status != 'finished':
                     is_ready = False
                     break
-           
-           if is_ready:
+            if is_ready:
                 ready.add(vo)
-            elif self.g.vp.tasks[vo].color != self.g.vp.tasks[v].color:
-                pt = Task(self.env, self.job) # prefetch task
+            elif self.prefetch_enabled and self.g.vp.tasks[vo].color != self.g.vp.tasks[v].color:
+                pt = Task(self.env, self) # prefetch task
                 pt.add_input(self.g.vp.tasks[v].get_output())
                 pt.color = self.g.vp.tasks[vo].color
                 pt.name = 'NOP'
-                prefetch.add(pt)
+                prefetch.append(pt)
+                print(f'task NOP with input {pt.inputs} is created with color {pt.color} for task {self.g.vp.tasks[vo].name} at {self.env.now}')
+
         for r in ready:
             self.g.vp.tasks[r].start_ts = self.env.now
         to_be_sent = [self.g.vp.tasks[r] for r in ready]
@@ -160,15 +180,15 @@ class Job:
             if is_ready:
                 ready.add(v)
                 self.g.vp.tasks[v].status = 'submitted'
-            elif self.g.vp.tasks[vo].color != self.g.vp.tasks[v].color:
-                pt = Task(self.env, self.job) # prefetch task
-                pt.add_input(self.g.vp.tasks[v].get_output())
-                pt.color = self.g.vp.tasks[vo].color
-                pt.name = 'NOP'
-                prefetch.add(pt)
+            #elif self.g.vp.tasks[vi].color != self.g.vp.tasks[v].color:
+            #    pt = Task(self.env, self.job) # prefetch task
+            #    pt.add_input(self.g.vp.tasks[v].get_output())
+            #    pt.color = self.g.vp.tasks[vo].color
+            #    pt.name = 'NOP'
+            #    prefetch.add(pt)
         to_be_sent = [self.g.vp.tasks[r] for r in ready]
-        for pt in prefetch:
-            to_be_sent.append(pt)
+        #for pt in prefetch:
+        #    to_be_sent.append(pt)
         return to_be_sent
 
 
@@ -234,7 +254,7 @@ class Job:
         # TODO: For now, assuming the nodes haven't been colored. It's possible that they
         # would have been, in which case it would be good to extend the chains    
 
-        cfd = open(f'/local0/serverless-sim/results/{self.name}.simcolors', 'w')
+        cfd = open(f'/local0/serverless/serverless-sim/results/{self.name}.simcolors', 'w')
         print("Chain Coloring...")
         c = 1
         # The topo order makes us start as far back as possible, and color all nodes
