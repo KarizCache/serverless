@@ -32,6 +32,7 @@ class Task:
         self.color = None
         self.child_color = None
         self.worker = None
+        self.optimal_placement=None
         self.status = 'waiting' 
         self.stats = self.Stats()
 
@@ -85,21 +86,23 @@ class Job:
         self.completion_events = []
         self.vid_to_vtx = {}
         self.name = None
+        self.name_to_task = {}
         self.prefetch_enabled = prefetch
 
     def __str__(self):
         return f'{self.name}'
 
-    def build_job_from_file(self, gfile, histfile):
-        name_to_task = {}
-        self.name = re.search(r'stats/(.*?)\.json', histfile).group(1)
+    def build_job_from_file(self, gfile, histfile, name):
+        self.name_to_task = {}
+        self.name = name #re.search(r'stats/(.*?)\.json', histfile).group(1)
         with open(histfile, 'r') as fd:
             taskstat = ast.literal_eval(fd.read())
             for name in taskstat:
                 ts = Task(self.env, job = self)
                 self.completion_events.append(ts.completion_event)
-                name_to_task[name] = ts
+                self.name_to_task[name] = ts
                 ts.set_output_size(taskstat[name]['msg']['nbytes'])
+                ts.vanilla_placement=taskstat[name]['worker'].split(':')[1].replace('//', '')
                 for ss in taskstat[name]['msg']['startstops']:
                     if ss['action'] == 'compute': 
                         ts.set_exec_time(ss['stop'] - ss['start'], ss['start'], ss['stop']) 
@@ -116,7 +119,7 @@ class Job:
                     v = g.add_vertex()
                     vid_to_vtx[vid] = v
                     vname_to_vtx[name] = v
-                    ts = name_to_task[name]
+                    ts = self.name_to_task[name]
                     ts.set_name(name)
                     ts.set_id(vid)
                     g.vp.tasks[v] = ts
@@ -131,6 +134,16 @@ class Job:
         self.vid_to_vtx = vid_to_vtx
         #gt.graph_draw(g, vertex_text=g.vertex_index, output="g.png")
         return self
+
+    def optimal_placement(self):
+        with open(f'/opt/dask-distributed/benchmark/stats/{self.name}.optimal', 'r') as fd:
+            lines = fd.read().split('\n')[:-1]
+            optimal_placement = {}
+            for l in lines:
+                self.name_to_task[l.split(',')[0]].optimal_placement = l.split(',')[-1]
+
+            #for v in self.g.vertices():
+            #    self.g.vp.tasks[v].optimal_placement = optimal_placement[self.name_to_task[v]]
 
 
     def get_task_completions(self):
@@ -225,13 +238,14 @@ class Job:
                 #print(f'{g.vp.tasks[current_ts].name} -> {g.vp.tasks[t].name}')
                 if (not g.vp.tasks[t].name in close_time):
                     assert(not g.vp.tasks[t].name in open_time) #cycle!
-                    DFS(t, open_time, close_time, current_time, sorted_nodes)
+                    current_time = DFS(t, open_time, close_time, current_time, sorted_nodes)
                 else: #don't visit, node is closed (visited)
                     assert(g.vp.tasks[t].name in open_time) #error (closed but never open!)
             close_time[g.vp.tasks[current_ts].name] = current_time
             current_time += 1
             if (not sorted_nodes == None):
                 sorted_nodes.appendleft(current_ts)
+            return current_time
 
         # First, do a topological sort of the graph, starting at all of the nodes with no
         # dependencies.
@@ -247,7 +261,7 @@ class Job:
 
 
         for starting_ts in starting_tasks:
-            DFS(starting_ts, open_time, close_time, current_time, sorted_nodes)
+            current_time = DFS(starting_ts, open_time, close_time, current_time, sorted_nodes)
 
         #Now we do the chain partitioning. Will store the results in the task itself,
         #in the color field.

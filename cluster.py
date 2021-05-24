@@ -28,6 +28,7 @@ class CPU(object):
     def update_running_tasks_stats(self):
         # update the progress of the running tasks
         n_tasks = len(self.running_tasks)
+        print(f'{self.env.now} {Fore.GREEN} {self.hostname}: {Style.RESET_ALL} {n_tasks}')
         for key in self.running_tasks:
             ts = self.running_tasks[key]
             ts.stats.exectuion_history.append({'start': ts.stats.cur_exec_rate_start, 'end': self.env.now, 'n_tasks': n_tasks, 'progress': ts.stats.progress})
@@ -200,7 +201,8 @@ class Executor(object):
         deser_time = 0
         ser_time = 0
         for eve in self.outstanding:
-            val = self.outstanding[eve].value
+            print('event ', self.outstanding[eve], 'at', self.hostname)
+            #val = self.outstanding[eve].value
             transmit_time += self.outstanding[eve].value['transfer_time']
             ser_time += self.outstanding[eve].value['ser_wait_time']
             data_size += self.outstanding[eve].value['size']
@@ -331,8 +333,4 @@ class Cluster:
     def submit_task(self, wid, task):
         #print(self.workers)
         self.workers[wid].submit_task(task)
-
-
-
-
 

@@ -10,6 +10,7 @@ import time
 import datetime
 import timeit
 import json
+import os
 
 class Scheduler(object):
     def __init__(self, env, cluster, configs):
@@ -24,7 +25,7 @@ class Scheduler(object):
         self.event_to_task = {}
         self.cache_controller = {}
         self.policy = configs['cluster']['scheduling']
-        self.logf = configs['benchmark']['log']
+        self.logdir = configs['benchmark']['logdir']
         self.transmit_time = 0
         self.cpu_time = 0
         self.local_read = 0
@@ -38,10 +39,8 @@ class Scheduler(object):
                 'cpu_time': 0, 'transmit_time': 0}
 
 
-
     def put(self, job):
         return self.job_queue.put(job)
-
 
 
     def schedule_job(self):
@@ -85,6 +84,8 @@ class Scheduler(object):
 
     def execute_job(self, job):
         start_time = self.env.now
+        job.optimal_placement()
+
         completions = job.get_task_completions()
         tasks = job.get_next_tasks()
 
@@ -100,7 +101,7 @@ class Scheduler(object):
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished,executin time,remote read,local_read,transfer time,cput_time,deserializaion time,serialization time,task time {Style.RESET_ALL}')
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now},{self.env.now - start_time},{self.stats["remote_read"]},{self.stats["local_read"]},{self.stats["transmit_time"]},{self.stats["cpu_time"]},{self.stats["deser_time"]},{self.stats["ser_time"]},{self.stats["task_time"]} {Style.RESET_ALL}')
         
-        with open(self.logf, 'w') as fd:
+        with open(f'{os.path.join(self.logdir, job.name)}.log', 'w') as fd:
             fd.write(json.dumps(self.stats))
 
 
@@ -118,13 +119,17 @@ class Scheduler(object):
             assert(task)
             #print(f'task {Fore.YELLOW}{task.name}{Style.RESET_ALL}, the color is {Fore.LIGHTYELLOW_EX}{task.color}{Style.RESET_ALL}')
             return self.hash_ring.get_node(task.color)
+        if self.policy == 'optimal':
+            return task.optimal_placement;
+        if self.policy == 'vanilla':
+            return task.vanilla_placement;
         if self.policy == 'manias':
             pass
 
 
 
     def submit_task(self, task):
-        w = self.decide_worker() if not (self.policy == 'consistent_hash' or self.policy=='chain_color') else self.decide_worker(task)
+        w = self.decide_worker() if not (self.policy in ['consistent_hash' , 'chain_color', 'optimal', 'vanilla']) else self.decide_worker(task)
         if task.name != 'NOP': 
             task.obj.who_has = w # set the current worker as the owner of this task. 
             self.event_to_task[task.completion_event] = task

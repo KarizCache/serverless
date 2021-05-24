@@ -1,37 +1,39 @@
 benchmark:
-  log: /local0/serverless/serverless-sim/results/tree_reduction_dag.syncwdeser.chain_color.log
+  logdir: /local0/serverless/serverless-sim/results/
+  workloaddir: /opt/dask-distributed/benchmark/stats/
   workloads:
-  - execution: ./stats/tree_reduction_dag.json   #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.json
-    graph: ./stats/tree_reduction_dag.g #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.g
+     - 0d525495_bca8
+  #  - execution: ./stats/tree_reduction_dag.json   #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.json
+  #graph: ./stats/tree_reduction_dag.g #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.g
 cluster:
-  scheduling: chain_color
+  scheduling: random
   serialization: syncwdeser
   prefetch: 0
 topology:
   r1:
     gateway: r3
-    ip: 192.168.1.1
+    ip: 10.255.23.1
     name: r1
     ports: 32
     rate: 2684354560
     type: router
   r2:
     gateway: r3
-    ip: 192.168.2.1
+    ip: 10.255.24.1
     name: r2
     ports: 4
     rate: 2684354560
     type: router
   r3:
     gateway: None
-    ip: 192.168.3.1
+    ip: 10.255.22.1
     name: r3
     ports: 4
     rate: 2684354560
     type: router
   s1:
     gateway: r3
-    ip: 192.168.3.2
+    ip: 10.255.22.2
     metadata: /local0/wlmod/simulator/karizsim/inputs.csv
     name: s1
     port: 9000
@@ -43,42 +45,42 @@ topology:
     cache.port: 9001
     executors: 1
     gateway: r1
-    ip: 192.168.1.10
+    ip: 10.255.23.108
     memory: 322000000
     name: w1
     rate: 2684354560
-    storage: 192.168.3.2:9000
+    storage: 10.255.22.2:9000
     type: worker
   w2:
     cache.policy: FIFO
     cache.port: 9001
     executors: 1
     gateway: r1
-    ip: 192.168.1.203
+    ip: 10.255.23.109
     memory: 322000000
     name: w2
     rate: 2684354560
-    storage: 192.168.3.2:9000
+    storage: 10.255.22.2:9000
     type: worker
   w3:
     cache.policy: FIFO
     cache.port: 9001
     executors: 1
     gateway: r1
-    ip: 192.168.1.44
+    ip: 10.255.23.110
     memory: 322000000
     name: w3
     rate: 2684354560
-    storage: 192.168.3.2:9000
+    storage: 10.255.22.2:9000
     type: worker
   w4:
     cache.policy: FIFO
     cache.port: 9001
     executors: 1
     gateway: r1
-    ip: 192.168.1.165
+    ip: 10.255.23.115
     memory: 322000000
     name: w4
     rate: 2684354560
-    storage: 192.168.3.2:9000
+    storage: 10.255.22.2:9000
     type: worker
