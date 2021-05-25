@@ -22,10 +22,12 @@ class Scheduler(object):
         env.process(self.schedule_task())
         self.workers_it = itertools.cycle(cluster.get_workers())
         self.hash_ring = HashRing(nodes=list(cluster.get_workers()))
+        self.color2worker_map = {}
         self.event_to_task = {}
         self.cache_controller = {}
         self.policy = configs['cluster']['scheduling']
         self.logdir = configs['benchmark']['logdir']
+        self.stats_fpath = configs['benchmark']['statistics']
         self.transmit_time = 0
         self.cpu_time = 0
         self.local_read = 0
@@ -104,6 +106,9 @@ class Scheduler(object):
         with open(f'{os.path.join(self.logdir, job.name)}.log', 'w') as fd:
             fd.write(json.dumps(self.stats))
 
+        with open(self.stats_fpath, 'a') as fd:
+            fd.write(f'{job.name},{self.policy},{self.env.now - start_time},{self.stats["remote_read"]},{self.stats["local_read"]},{self.stats["transmit_time"]},{self.stats["cpu_time"]},{self.stats["deser_time"]},{self.stats["ser_time"]},{self.stats["task_time"]}')
+
 
 
     def decide_worker(self, task=None):
@@ -115,10 +120,18 @@ class Scheduler(object):
         if self.policy == 'consistent_hash':
             assert(task)
             return self.hash_ring.get_node(task.obj.name)
-        if self.policy == 'chain_color':
+        if self.policy == 'chain_color_ch':
             assert(task)
             #print(f'task {Fore.YELLOW}{task.name}{Style.RESET_ALL}, the color is {Fore.LIGHTYELLOW_EX}{task.color}{Style.RESET_ALL}')
             return self.hash_ring.get_node(task.color)
+        if self.policy == 'chain_color_rr':
+            assert(task)
+            #print(f'task {Fore.YELLOW}{task.name}{Style.RESET_ALL}, the color is {Fore.LIGHTYELLOW_EX}{task.color}{Style.RESET_ALL}')
+            if task.color not in self.color2worker_map:
+                self.color2worker_map[task.color] = next(self.workers_it)
+            return  self.color2worker_map[task.color]
+
+       
         if self.policy == 'optimal':
             return task.optimal_placement;
         if self.policy == 'vanilla':

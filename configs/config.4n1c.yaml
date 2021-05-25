@@ -1,14 +1,13 @@
 benchmark:
   logdir: /local0/serverless/serverless-sim/results/
+  statistics: /local0/serverless/serverless-sim/results/statistics.csv
   workloaddir: /opt/dask-distributed/benchmark/stats/
   workloads:
-     - 0d525495_bca8
-  #  - execution: ./stats/tree_reduction_dag.json   #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.json
-  #graph: ./stats/tree_reduction_dag.g #/opt/dask-distributed/benchmark/stats/tree_reduction_1024B_0131e41b.g
+  - 0d525495_bca8
 cluster:
-  scheduling: random
-  serialization: syncwdeser
   prefetch: 0
+  scheduling: chain_color_rr
+  serialization: syncwdeser
 topology:
   r1:
     gateway: r3

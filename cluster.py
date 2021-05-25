@@ -19,6 +19,7 @@ class CPU(object):
         self.slot = 1
         self.hostname = hostname
         self.proc_queue = simpy.Store(env)
+        #self.proc_queue = simpy.PriorityStore(env)
         self.running_tasks = {}
         env.process(self.execute())
         self.current_event = None
@@ -28,7 +29,7 @@ class CPU(object):
     def update_running_tasks_stats(self):
         # update the progress of the running tasks
         n_tasks = len(self.running_tasks)
-        print(f'{self.env.now} {Fore.GREEN} {self.hostname}: {Style.RESET_ALL} {n_tasks}')
+        #print(f'{self.env.now} {Fore.GREEN} {self.hostname}: {Style.RESET_ALL} {n_tasks}')
         for key in self.running_tasks:
             ts = self.running_tasks[key]
             ts.stats.exectuion_history.append({'start': ts.stats.cur_exec_rate_start, 'end': self.env.now, 'n_tasks': n_tasks, 'progress': ts.stats.progress})
@@ -41,7 +42,7 @@ class CPU(object):
         for key in self.running_tasks:
             ts = self.running_tasks[key]
             ts.stats.cur_exec_rate_start = self.env.now
-            ts.estimated_finish_time = self.env.now + (ts.exec_time - ts.stats.progress)*n_tasks;
+            ts.stats.estimated_finish_time = self.env.now + (ts.exec_time - ts.stats.progress)*n_tasks;
 
         # get the task with the minimum estimated finish time to set the timer for. 
         if not len(self.running_tasks): return None
@@ -50,36 +51,36 @@ class CPU(object):
     def put(self, task):
         #print(f'task {task} is recieved by {self.hostname} at {self.env.now} ')
         self.update_running_tasks_stats();
-        
+
         # update the estimated finish time
         self.running_tasks[task] = task
-        
+
         ts_next = self.update_task_time()
-        if not ts_next: return 
+        if not ts_next: return
         if self.current_event and self.current_event.triggered:
             # Interrupt charging if not already done.
             self.current_event.interrupt('Need to go!')
         # cancel the previous event.
         return self.proc_queue.put(ts_next)
 
-
     def execute(self):
         while True:
             ts = yield self.proc_queue.get()
+            if len(self.running_tasks):
+                ts = min(self.running_tasks.values())
             try:
-                print(f'{Fore.BLUE} {self.env.now}: {Fore.GREEN} {self.hostname} {Style.RESET_ALL} has scheduled task {Fore.YELLOW} {ts} {Style.RESET_ALL} to be finished at {ts.estimated_finish_time}')
-                self.current_event = yield self.env.timeout(ts.estimated_finish_time)
+                #print(f'{Fore.BLUE} {self.env.now}: {Fore.GREEN} {self.hostname} {Style.RESET_ALL} has scheduled task {Fore.YELLOW} {ts} {Style.RESET_ALL} to be finished at {ts.stats.estimated_finish_time}')
+                self.current_event = yield self.env.timeout(ts.stats.estimated_finish_time - self.env.now)
 
                 ts.computation_completion_event.succeed()
                 self.update_running_tasks_stats()
                 del self.running_tasks[ts]
-                ts_next = self.update_task_time()
-                if ts_next:
-                    self.proc_queue.put(ts_next)
+                #ts_next = self.update_task_time()
+                self.update_task_time()
+                #if ts_next:
+                #    self.proc_queue.put(ts_next)
             except simpy.Interrupt as i:
                 print('Bat. ctrl. interrupted at', env.now, 'msg:', i.cause)
-
-
 
 
 class Executor(object):
@@ -122,7 +123,7 @@ class Executor(object):
 
         
     def put(self, msg):
-        # print(f'{Fore.YELLOW}Executor {self.hostname}:{self.port} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
+        #print(f'{Fore.YELLOW}Executor {self.hostname}:{self.port} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
         return self.msg_queue.put(msg)
 
     def data_plane(self):
@@ -147,7 +148,8 @@ class Executor(object):
 
 
     def submit(self, task):
-        if self.debug:
+        debug=False
+        if debug:
             print(f'Submit task {task} to executor {self.hostname}:{self.port} at {self.env.now}')
         yield self.task_queue.put(task)
 
@@ -155,7 +157,7 @@ class Executor(object):
     def control_plane(self):
         while True:
             task = yield self.task_queue.get()
-            print(f'task {Fore.YELLOW} {task.name} {Fore.WHITE} is executed on {Fore.GREEN}{self.hostname} {Fore.WHITE} for {Fore.RED}{task.exec_time} at {Fore.BLUE} {self.env.now} {Style.RESET_ALL}')
+            #print(f'task {Fore.YELLOW} {task.name} {Fore.WHITE} is executed on {Fore.GREEN}{self.hostname} {Fore.WHITE} for {Fore.RED}{task.exec_time} at {Fore.BLUE} {self.env.now} {Style.RESET_ALL}')
             execute_proc = self.env.process(self.execute_function(task))
             #yield execute_proc
 
@@ -164,15 +166,16 @@ class Executor(object):
         data_size = 0
         local_read = 0
         remote_read = 0
-        self.outstanding = {}
-        self.timeoutstanding = {}
+        outstanding = {}
 
         # incorporate the scheduling delay here:
         yield self.env.timeout(task.schedule_delay)
 
         start = self.env.now 
+        #print(f'at {self.hostname} inputs are', task.inputs)
         for obj in task.inputs:
             self.outstanding[self.request_id] = self.env.event()
+            outstanding[self.request_id] = self.outstanding[self.request_id]  
             self.timeoutstanding[self.request_id] = self.env.now
             if self.ip == obj.who_has.split(':')[0]:
                 # The data should be found in the local cache 
@@ -190,34 +193,37 @@ class Executor(object):
                         dst = obj.who_has.split(':')[0], dport= int(obj.who_has.split(':')[1]),
                         rpc = 'fetch_data', data = {'obj': obj.name})
                 #print(f'{Fore.LIGHTRED_EX}Executor {self.hostname}:{self.port} request for {req.data["obj"]},{req.reqid} from {req.dst}:{req.dport} at {self.env.now} {Style.RESET_ALL}')
-                self.outstanding[self.request_id] = self.env.event()
-                self.timeoutstanding[self.request_id] = self.env.now
+                #self.outstanding[self.request_id] = self.env.event()
+                #self.timeoutstanding[self.request_id] = self.env.now
                 self.out_port.put(req)
             self.request_id += 1
-        yield simpy.events.AllOf(self.env, self.outstanding.values())
+        yield simpy.events.AllOf(self.env, outstanding.values())
 
         fetch_time = self.env.now - start
         transmit_time = 0
         deser_time = 0
         ser_time = 0
-        for eve in self.outstanding:
-            print('event ', self.outstanding[eve], 'at', self.hostname)
-            #val = self.outstanding[eve].value
-            transmit_time += self.outstanding[eve].value['transfer_time']
-            ser_time += self.outstanding[eve].value['ser_wait_time']
-            data_size += self.outstanding[eve].value['size']
-            if self.outstanding[eve].value['type'] == 'remote':
-                remote_read += self.outstanding[eve].value['size']
+        #print('outstanding events are', outstanding)
+        for req_id in outstanding:
+            #print('event ', outstanding[req_id], 'at', self.hostname)
+            val = outstanding[req_id].value
+            transmit_time += self.outstanding[req_id].value['transfer_time']
+            ser_time += self.outstanding[req_id].value['ser_wait_time']
+            data_size += self.outstanding[req_id].value['size']
+            if self.outstanding[req_id].value['type'] == 'remote':
+                remote_read += self.outstanding[req_id].value['size']
             else:
-                local_read += self.outstanding[eve].value['size']
-            deser_time += self.outstanding[eve].value['deserialization_time']
+                local_read += self.outstanding[req_id].value['size']
+            deser_time += self.outstanding[req_id].value['deserialization_time']
+            del self.outstanding[req_id]
 
         #process data
         self.cpu.put(task)
         yield simpy.events.AllOf(self.env, [task.computation_completion_event])
 
         # write data
-        if self.debug:
+        debug=False
+        if debug:
             print(f'{Fore.GREEN}Executor {self.hostname}:{self.port} writes object {task.obj} for {task.id} at {self.env.now} at {self.mem_port} {Style.RESET_ALL}')
         
         #print(ser_time)
@@ -234,8 +240,9 @@ class Executor(object):
 
 
         # notify the completion of this task
-        if self.debug:
-            print(f'{Fore.LIGHTYELLOW_EX}Executor {self.hostname}:{self.port} lunches task {task.id} at {start} and ends at {self.env.now}, execution time: {self.env.now - start} {Style.RESET_ALL}')
+        debug=True
+        if debug:
+            print(f'Executor {Fore.LIGHTGREEN_EX}{self.hostname}:{self.port}{Style.RESET_ALL} lunches {Fore.LIGHTBLUE_EX}task {task} at {Fore.LIGHTYELLOW_EX}{start}{Style.RESET_ALL} and ends at {Fore.LIGHTRED_EX}{self.env.now}{Style.RESET_ALL}, execution time: {Fore.LIGHTRED_EX}{self.env.now - start}{Style.RESET_ALL}')
         task.end_ts = self.env.now
         task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 
             'remote_read': remote_read, 'local_read': local_read, 'fetch_time': fetch_time, 'start_ts': task.stats.start_time, 'worker': task.worker, 
