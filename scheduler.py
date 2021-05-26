@@ -12,6 +12,10 @@ import timeit
 import json
 import os
 
+from graphviz import Digraph
+import matplotlib.colors as mcolors
+
+
 class Scheduler(object):
     def __init__(self, env, cluster, configs):
         self.env = env
@@ -107,7 +111,39 @@ class Scheduler(object):
             fd.write(json.dumps(self.stats))
 
         with open(self.stats_fpath, 'a') as fd:
-            fd.write(f'{job.name},{self.policy},{self.env.now - start_time},{self.stats["remote_read"]},{self.stats["local_read"]},{self.stats["transmit_time"]},{self.stats["cpu_time"]},{self.stats["deser_time"]},{self.stats["ser_time"]},{self.stats["task_time"]}')
+            fd.write(f'{job.name},{self.policy},{self.env.now - start_time},{self.stats["remote_read"]},{self.stats["local_read"]},{self.stats["transmit_time"]},{self.stats["cpu_time"]},{self.stats["deser_time"]},{self.stats["ser_time"]},{self.stats["task_time"]}\n')
+
+        # plot the graph
+        self.plot_graph(job);
+
+
+
+    def plot_graph(self, job):
+        worker_color = {'10.255.23.108': '#e41a1c',
+                '10.255.23.109': '#984ea3',
+                '10.255.23.110': '#ff7f00',
+                '10.255.23.115': '#4daf4a'}
+        css_colors = list(mcolors.CSS4_COLORS.keys())
+
+        dg = Digraph('G', filename=f'{job.name}.{self.policy}.gv', format='png')
+        for v in job.g.vertices():
+            #print(job.g.vp.tasks[v].color)
+            #dg.attr('node', shape='ellipse', style='filled', color=job.g.vp.tasks[v].color)
+            dg.attr('node', shape='ellipse', style="filled,solid",
+                    penwidth="3",
+                    fillcolor=mcolors.CSS4_COLORS[css_colors[int(job.g.vp.tasks[v].color)]] if 'chain_color' in self.policy else '#f0f0f0' ,
+                    color=worker_color[job.g.vp.tasks[v].worker])
+
+            color = '-'
+            if 'chain_color' in self.policy:
+                color = job.g.vp.tasks[v].color
+            dg.node(f'{v}, color({color})')
+        for e in job.g.edges():
+            dg.edge(f'{e.source()}, color({job.g.vp.tasks[e.source()].color if "chain_color" in self.policy else "-"})',
+            
+                    f'{e.target()}, color({job.g.vp.tasks[e.target()].color if "chain_color" in self.policy else "-"})')
+        dg.view(f'{os.path.join(self.logdir,job.name)}.{self.policy}', quiet=False)
+
 
 
 
@@ -130,19 +166,18 @@ class Scheduler(object):
             if task.color not in self.color2worker_map:
                 self.color2worker_map[task.color] = next(self.workers_it)
             return  self.color2worker_map[task.color]
-
-       
         if self.policy == 'optimal':
             return task.optimal_placement;
         if self.policy == 'vanilla':
             return task.vanilla_placement;
         if self.policy == 'manias':
             pass
+        raise NameError('The scheduler is not supported')
 
 
 
     def submit_task(self, task):
-        w = self.decide_worker() if not (self.policy in ['consistent_hash' , 'chain_color', 'optimal', 'vanilla']) else self.decide_worker(task)
+        w = self.decide_worker() if not (self.policy in ['consistent_hash' , 'chain_color_ch', 'chain_color_rr', 'optimal', 'vanilla']) else self.decide_worker(task)
         if task.name != 'NOP': 
             task.obj.who_has = w # set the current worker as the owner of this task. 
             self.event_to_task[task.completion_event] = task

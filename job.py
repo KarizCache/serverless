@@ -204,9 +204,7 @@ class Job:
         #    to_be_sent.append(pt)
         return to_be_sent
 
-
     # RF-MSR B
-
     def generate_graph_chains(self, g):
         """
         Generate a chain decomposition of the graph. This algorithm is not optimal,

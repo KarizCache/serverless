@@ -27,18 +27,24 @@ cluster_conf_path = params['cluster']['configs']
 cluster_configs = yaml.load(open(cluster_conf_path, 'r'), Loader=yaml.FullLoader)
 
 
+print(params['benchmark'])
+
+statistics_fpath = params['benchmark']['statistics']
+#with open(statistics_fpath, 'w') as fd:
+#    # write the header
+#    fd.write('appname,scheduler,end2end,remote_read,local_read,transimit(s),compute(s),deseriation(s),serialization(s),task_time\n')
+
+
 
 for sched_policy in params['cluster']['policy']['scheduling']:
     cluster_configs['cluster']['scheduling'] = sched_policy
     for ser_policy in params['cluster']['policy']['serialization']:
         cluster_configs['cluster']['serialization'] = ser_policy
         for workload in params['benchmark']['workloads']:
-            #cluster_configs['benchmark']['logdir'] = path.join(params['benchmarks']['logdir'], f'{workload}.{ser_policy}.{sched_policy}.log')
-            #cluster_configs['benchmark']['workloads'] = [workload]
-        
+            cluster_configs['benchmark']['workloads'] = [workload]
             yaml.dump(cluster_configs, open(cluster_conf_path, 'w'))
             result = subprocess.run(['/local0/serverless/serverless-sim/run.py', '--config', cluster_conf_path])
-            #print(json.dumps(cluster_configs, indent=4))
+            #print(json.dumps(cluster_configs, indent=4)km )
             #break
         #break
     #break

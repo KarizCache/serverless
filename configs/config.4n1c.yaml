@@ -3,7 +3,7 @@ benchmark:
   statistics: /local0/serverless/serverless-sim/results/statistics.csv
   workloaddir: /opt/dask-distributed/benchmark/stats/
   workloads:
-  - 0d525495_bca8
+  - all2all3x41GB1B_fec067dc
 cluster:
   prefetch: 0
   scheduling: chain_color_rr

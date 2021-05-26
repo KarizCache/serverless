@@ -70,7 +70,7 @@ class CPU(object):
                 ts = min(self.running_tasks.values())
             try:
                 #print(f'{Fore.BLUE} {self.env.now}: {Fore.GREEN} {self.hostname} {Style.RESET_ALL} has scheduled task {Fore.YELLOW} {ts} {Style.RESET_ALL} to be finished at {ts.stats.estimated_finish_time}')
-                self.current_event = yield self.env.timeout(ts.stats.estimated_finish_time - self.env.now)
+                self.current_event = yield self.env.timeout(abs(ts.stats.estimated_finish_time - self.env.now))
 
                 ts.computation_completion_event.succeed()
                 self.update_running_tasks_stats()
