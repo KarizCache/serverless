@@ -107,7 +107,7 @@ class Scheduler(object):
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished,executin time,remote read,local_read,transfer time,cput_time,deserializaion time,serialization time,task time {Style.RESET_ALL}')
         print(f'{Fore.LIGHTRED_EX}Job {job} is finished at {self.env.now},{self.env.now - start_time},{self.stats["remote_read"]},{self.stats["local_read"]},{self.stats["transmit_time"]},{self.stats["cpu_time"]},{self.stats["deser_time"]},{self.stats["ser_time"]},{self.stats["task_time"]} {Style.RESET_ALL}')
         
-        with open(f'{os.path.join(self.logdir, job.name)}.log', 'w') as fd:
+        with open(f'{os.path.join(self.logdir, job.name)}.{self.policy}.log', 'w') as fd:
             fd.write(json.dumps(self.stats))
 
         with open(self.stats_fpath, 'a') as fd:
@@ -115,7 +115,6 @@ class Scheduler(object):
 
         # plot the graph
         self.plot_graph(job);
-
 
 
     def plot_graph(self, job):

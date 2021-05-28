@@ -30,9 +30,9 @@ cluster_configs = yaml.load(open(cluster_conf_path, 'r'), Loader=yaml.FullLoader
 print(params['benchmark'])
 
 statistics_fpath = params['benchmark']['statistics']
-#with open(statistics_fpath, 'w') as fd:
+with open(statistics_fpath, 'w') as fd:
 #    # write the header
-#    fd.write('appname,scheduler,end2end,remote_read,local_read,transimit(s),compute(s),deseriation(s),serialization(s),task_time\n')
+    fd.write('appname,scheduler,end2end,remote_read,local_read,transimit(s),compute(s),deseriation(s),serialization(s),task_time\n')
 
 
 

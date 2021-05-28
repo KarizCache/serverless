@@ -5,6 +5,12 @@ benchmark:
   workloads:
      - all2all4x41GB1B_58e5586a
      - all2all3x41GB1B_fec067dc
+     - stencil_1d4x41GB1B_7013403d
+     - stencil_1d5x41GB1B_a298f007
+     - stencil_1d_periodic5x41GB1B_0f26fdac
+     - tree5x41GB1B_e6a59da7
+     - tree7x41GB1B_41b765fc
+     - randomnearest5x41GB1B_d41204ff
 cluster:
    configs: /local0/serverless/serverless-sim/configs/config.4n1c.yaml
    policy:

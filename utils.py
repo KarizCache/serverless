@@ -17,7 +17,7 @@ def fit_deserialization():
     def pw(x):
         #print(pars)
         a, b = pars
-        return a*math.pow(x, b)
+        return 0 #a*math.pow(x, b)
     return pw
     
 
@@ -29,5 +29,5 @@ def fit_serialization():
     def pw(x):
         #print(pars)
         a, b = pars
-        return a*math.pow(x, b)
+        return 0 #a*math.pow(x, b)
     return pw

@@ -111,14 +111,14 @@ class Job:
             g = gt.Graph(directed=True)
             gstr = fd.read().split('\n')
             vid_to_vtx = {}
-            vname_to_vtx = {}
+            self.vname_to_vtx = {}
             g.vertex_properties['tasks'] = g.new_vertex_property('python::object')
             for s in gstr:
                 if s.startswith('v'):
                     vid, name = int(s.split(',', 2)[1]), s.split(',', 2)[2]
                     v = g.add_vertex()
                     vid_to_vtx[vid] = v
-                    vname_to_vtx[name] = v
+                    self.vname_to_vtx[name] = v
                     ts = self.name_to_task[name]
                     ts.set_name(name)
                     ts.set_id(vid)
@@ -141,9 +141,6 @@ class Job:
             optimal_placement = {}
             for l in lines:
                 self.name_to_task[l.split(',')[0]].optimal_placement = l.split(',')[-1]
-
-            #for v in self.g.vertices():
-            #    self.g.vp.tasks[v].optimal_placement = optimal_placement[self.name_to_task[v]]
 
 
     def get_task_completions(self):

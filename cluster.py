@@ -48,8 +48,9 @@ class CPU(object):
         if not len(self.running_tasks): return None
         return min(self.running_tasks.values())
 
+
     def put(self, task):
-        #print(f'task {task} is recieved by {self.hostname} at {self.env.now} ')
+        print(f'task {task} is recieved by {self.hostname} at {self.env.now} ')
         self.update_running_tasks_stats();
 
         # update the estimated finish time
@@ -63,6 +64,7 @@ class CPU(object):
         # cancel the previous event.
         return self.proc_queue.put(ts_next)
 
+
     def execute(self):
         while True:
             ts = yield self.proc_queue.get()
@@ -70,7 +72,8 @@ class CPU(object):
                 ts = min(self.running_tasks.values())
             try:
                 #print(f'{Fore.BLUE} {self.env.now}: {Fore.GREEN} {self.hostname} {Style.RESET_ALL} has scheduled task {Fore.YELLOW} {ts} {Style.RESET_ALL} to be finished at {ts.stats.estimated_finish_time}')
-                self.current_event = yield self.env.timeout(abs(ts.stats.estimated_finish_time - self.env.now))
+                self.current_event = self.env.timeout(ts.stats.estimated_finish_time - self.env.now)
+                yield self.current_event
 
                 ts.computation_completion_event.succeed()
                 self.update_running_tasks_stats()
@@ -81,6 +84,10 @@ class CPU(object):
                 #    self.proc_queue.put(ts_next)
             except simpy.Interrupt as i:
                 print('Bat. ctrl. interrupted at', env.now, 'msg:', i.cause)
+
+
+    def execute2(self):
+        pass
 
 
 class Executor(object):
@@ -172,6 +179,8 @@ class Executor(object):
         yield self.env.timeout(task.schedule_delay)
 
         start = self.env.now 
+        task.stats.start_time = self.env.now
+
         #print(f'at {self.hostname} inputs are', task.inputs)
         for obj in task.inputs:
             self.outstanding[self.request_id] = self.env.event()
@@ -200,12 +209,12 @@ class Executor(object):
         yield simpy.events.AllOf(self.env, outstanding.values())
 
         fetch_time = self.env.now - start
+        task.stats.fetch_delay = fetch_time
+        
         transmit_time = 0
         deser_time = 0
         ser_time = 0
-        #print('outstanding events are', outstanding)
         for req_id in outstanding:
-            #print('event ', outstanding[req_id], 'at', self.hostname)
             val = outstanding[req_id].value
             transmit_time += self.outstanding[req_id].value['transfer_time']
             ser_time += self.outstanding[req_id].value['ser_wait_time']
@@ -218,8 +227,10 @@ class Executor(object):
             del self.outstanding[req_id]
 
         #process data
+        compute_start_ts = self.env.now
         self.cpu.put(task)
         yield simpy.events.AllOf(self.env, [task.computation_completion_event])
+        task.stats.compute_delay = self.env.now - compute_start_ts
 
         # write data
         debug=False
@@ -237,14 +248,14 @@ class Executor(object):
             serialization_delay = self.env.now - serialization_start
 
         task_endtoend_time = self.env.now - start
-
+        task.stats.end_time = task_endtoend_time
 
         # notify the completion of this task
         debug=True
         if debug:
             print(f'Executor {Fore.LIGHTGREEN_EX}{self.hostname}:{self.port}{Style.RESET_ALL} lunches {Fore.LIGHTBLUE_EX}task {task} at {Fore.LIGHTYELLOW_EX}{start}{Style.RESET_ALL} and ends at {Fore.LIGHTRED_EX}{self.env.now}{Style.RESET_ALL}, execution time: {Fore.LIGHTRED_EX}{self.env.now - start}{Style.RESET_ALL}')
         task.end_ts = self.env.now
-        task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 
+        task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 'computation_time': task.stats.compute_delay,
             'remote_read': remote_read, 'local_read': local_read, 'fetch_time': fetch_time, 'start_ts': task.stats.start_time, 'worker': task.worker, 
             'deserialization_time': deser_time, 'serialization_time': serialization_delay, 'end_ts': task.stats.end_time,
             'task_endtoend_delay': task_endtoend_time, 'write': task.obj.size if task.obj else 0, 'wait_for_serialization': ser_time})
