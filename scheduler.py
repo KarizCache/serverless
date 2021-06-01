@@ -15,6 +15,15 @@ import os
 from graphviz import Digraph
 import matplotlib.colors as mcolors
 
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+sns.set_style("whitegrid")
+import pandas as pd
+import matplotlib
+import matplotlib.ticker as ticker
+
+
 
 class Scheduler(object):
     def __init__(self, env, cluster, configs):
@@ -115,6 +124,7 @@ class Scheduler(object):
 
         # plot the graph
         self.plot_graph(job);
+        self.plot_exec_gannt(job);
 
 
     def plot_graph(self, job):
@@ -142,6 +152,60 @@ class Scheduler(object):
             
                     f'{e.target()}, color({job.g.vp.tasks[e.target()].color if "chain_color" in self.policy else "-"})')
         dg.view(f'{os.path.join(self.logdir,job.name)}.{self.policy}', quiet=False)
+
+
+    def plot_exec_gannt(self, job):
+        def format_xticks(x, pos=None):
+            return x
+        
+        sns.set_style("ticks")
+        sns.set_context("paper", font_scale=1)
+        sns.set_context(rc = {'patch.linewidth': 1.5, 'patch.color': 'black'})
+        
+        plt.rc('font', family='serif')
+        
+        fig, ax = plt.subplots(figsize=(8,5))
+        ax.set_xlabel('Time (msec)')
+        
+        sns.despine()
+        ax.yaxis.grid(color='#99999910', linestyle=(0, (5, 10)), linewidth=0.4)
+        
+        ax.set_axisbelow(True)
+        ax.tick_params(axis='both', which='major', labelsize=16)
+        ax.yaxis.set_ticks_position('both')
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_xticks))
+        
+        ax.set_ylabel('BFS level in task graph')
+        
+        # Setting graph attribute
+        ax.grid(True)
+        
+        worker_color = {'10.255.23.108': '#e41a1c',
+                        '10.255.23.109': '#984ea3',
+                        '10.255.23.110': '#ff7f00',
+                        '10.255.23.115': '#4daf4a'}
+        
+        yticks = []
+        workers_load={}
+        base = 0; size = 5; margin = 1
+        for ts in self.stats['tasks']:
+            #print(ts['name'], ts['start_ts'], ts['end_ts'], ts['worker'])
+            ax.broken_barh([(ts['start_ts'], ts['fetch_time'])], (base, size),
+                           edgecolors =worker_color[ts['worker']], facecolors =(worker_color[ts['worker']]))
+            ax.broken_barh([(ts['start_ts'] + ts['fetch_time'], ts['computation_time'])], (base, size),
+                           edgecolors =worker_color[ts['worker']], facecolors='#f0f0f0')
+            base += (size + margin)
+        ax.set_yticklabels(yticks)
+        ax.set_title(f'{job.name}\n{self.policy}', fontsize=18)
+        ax.legend(['10.255.23.108', '10.255.23.109', '10.255.23.109', '10.255.23.115'], loc=8)
+        ax.get_legend().legendHandles[0].set_color(worker_color['10.255.23.108'])
+        ax.get_legend().legendHandles[1].set_color(worker_color['10.255.23.109'])
+        ax.get_legend().legendHandles[2].set_color(worker_color['10.255.23.110'])
+        ax.get_legend().legendHandles[3].set_color(worker_color['10.255.23.115'])
+        fig.savefig(f'{os.path.join(self.logdir,job.name)}.gannt.{self.policy}.png', format='png', dpi=200)
+        plt.show()
+
+
 
 
 

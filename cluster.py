@@ -136,7 +136,8 @@ class Executor(object):
     def data_plane(self):
         while True:
             msg = yield self.msg_queue.get()
-            
+            self.env.process(self.communicate(msg))
+            '''
             if self.ip != msg.src:
                 transmit_time = msg.size*8.0/self.rate
                 yield self.env.timeout(transmit_time)
@@ -163,6 +164,36 @@ class Executor(object):
             self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 
                 'transfer_time': transfer_stop - transfer_start, 'type': _type, 
                 'deserialization_time': deser_latency, 'ser_wait_time': msg.data['ser_wait']})
+            '''
+
+    def communicate(self, msg):
+        if self.ip != msg.src:
+            transmit_time = msg.size*8.0/self.rate
+            yield self.env.timeout(transmit_time)
+        
+        transfer_start = self.timeoutstanding[msg.reqid]
+        transfer_stop = self.env.now
+        #print(f'{Fore.WHITE}Executor {self.hostname}:{self.port} read {msg} at {self.env.now} {Style.RESET_ALL}')
+        if msg.rpc == 'cache_response_data' and msg.data['status'] == 'hit':
+            _type = 'remote'
+            deser_latency = self.deserialization_latency(msg.data['size']) 
+            yield self.env.timeout(deser_latency)
+            print(f'{Fore.LIGHTMAGENTA_EX}Transfer {msg.src}:{msg.sport}-->{self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]}',
+                    f'request id {msg.reqid}, started at {round(transfer_start, 2)} ended at {round(transfer_stop, 2)},',
+                    f'transfer delay: {round(transfer_stop - transfer_start, 2)} {Style.RESET_ALL}')
+        elif msg.rpc == 'localcache_response_data':
+            _type = 'local' 
+            deser_latency = 0
+            if self.serialization_policy == 'syncwdeser':
+                deser_latency = self.deserialization_latency(msg.data['size']) 
+                yield self.env.timeout(deser_latency)
+            print(f'{Fore.LIGHTGREEN_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]}',
+                    f'from local cache, started at {transfer_start} ended at {transfer_stop}, transfer delay: {round(transfer_stop - transfer_start, 2)} {Style.RESET_ALL}')
+
+        self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 
+            'transfer_time': transfer_stop - transfer_start, 'type': _type, 
+            'deserialization_time': deser_latency, 'ser_wait_time': msg.data['ser_wait']})
+
 
 
     def submit(self, task):
