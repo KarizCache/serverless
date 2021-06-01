@@ -14,21 +14,21 @@ topology:
     ip: 10.255.23.1
     name: r1
     ports: 32
-    rate: 2684354560
+    rate: 10737418240
     type: router
   r2:
     gateway: r3
     ip: 10.255.24.1
     name: r2
     ports: 4
-    rate: 2684354560
+    rate: 10737418240
     type: router
   r3:
     gateway: None
     ip: 10.255.22.1
     name: r3
     ports: 4
-    rate: 2684354560
+    rate: 10737418240
     type: router
   s1:
     gateway: r3
@@ -36,7 +36,7 @@ topology:
     metadata: /local0/wlmod/simulator/karizsim/inputs.csv
     name: s1
     port: 9000
-    rate: 2684354560
+    rate: 10737418240
     storage_rate: 104857600
     type: storage
   w1:
@@ -47,7 +47,7 @@ topology:
     ip: 10.255.23.108
     memory: 322000000
     name: w1
-    rate: 2684354560
+    rate: 10737418240
     storage: 10.255.22.2:9000
     type: worker
   w2:
@@ -58,7 +58,7 @@ topology:
     ip: 10.255.23.109
     memory: 322000000
     name: w2
-    rate: 2684354560
+    rate: 10737418240
     storage: 10.255.22.2:9000
     type: worker
   w3:
@@ -69,7 +69,7 @@ topology:
     ip: 10.255.23.110
     memory: 322000000
     name: w3
-    rate: 2684354560
+    rate: 10737418240
     storage: 10.255.22.2:9000
     type: worker
   w4:
@@ -80,6 +80,6 @@ topology:
     ip: 10.255.23.115
     memory: 322000000
     name: w4
-    rate: 2684354560
+    rate: 10737418240
     storage: 10.255.22.2:9000
     type: worker

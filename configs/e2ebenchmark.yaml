@@ -21,5 +21,4 @@ cluster:
         - vanilla
         - random 
         - chain_color_ch
-        - round_robin
         - chain_color_rr

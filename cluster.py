@@ -21,7 +21,7 @@ class CPU(object):
         self.proc_queue = simpy.Store(env)
         #self.proc_queue = simpy.PriorityStore(env)
         self.running_tasks = {}
-        env.process(self.execute())
+        self.executor = self.env.process(self.execute())
         self.current_event = None
         pass
 
@@ -37,6 +37,7 @@ class CPU(object):
             ts.stats.progress += coretime_progress;
 
 
+
     def update_task_time(self):
         n_tasks = len(self.running_tasks)
         for key in self.running_tasks:
@@ -45,12 +46,11 @@ class CPU(object):
             ts.stats.estimated_finish_time = self.env.now + (ts.exec_time - ts.stats.progress)*n_tasks;
 
         # get the task with the minimum estimated finish time to set the timer for. 
-        if not len(self.running_tasks): return None
-        return min(self.running_tasks.values())
+        return min(self.running_tasks.values()) if len(self.running_tasks) else None
 
 
     def put(self, task):
-        print(f'task {task} is recieved by {self.hostname} at {self.env.now} ')
+        #print(f'task {task} is recieved by {self.hostname} at {self.env.now} ')
         self.update_running_tasks_stats();
 
         # update the estimated finish time
@@ -58,7 +58,7 @@ class CPU(object):
 
         ts_next = self.update_task_time()
         if not ts_next: return
-        if self.current_event and self.current_event.triggered:
+        if self.current_event and not self.current_event.triggered:
             # Interrupt charging if not already done.
             self.current_event.interrupt('Need to go!')
         # cancel the previous event.
@@ -68,26 +68,24 @@ class CPU(object):
     def execute(self):
         while True:
             ts = yield self.proc_queue.get()
-            if len(self.running_tasks):
-                ts = min(self.running_tasks.values())
-            try:
-                #print(f'{Fore.BLUE} {self.env.now}: {Fore.GREEN} {self.hostname} {Style.RESET_ALL} has scheduled task {Fore.YELLOW} {ts} {Style.RESET_ALL} to be finished at {ts.stats.estimated_finish_time}')
-                self.current_event = self.env.timeout(ts.stats.estimated_finish_time - self.env.now)
-                yield self.current_event
+            self.current_event = self.env.process(self.runner())
+            yield self.current_event
 
+
+    def runner(self):
+
+        if len(self.running_tasks):
+            ts = min(self.running_tasks.values())
+            try:
+                yield self.env.timeout(ts.stats.estimated_finish_time - self.env.now)
                 ts.computation_completion_event.succeed()
                 self.update_running_tasks_stats()
                 del self.running_tasks[ts]
                 #ts_next = self.update_task_time()
                 self.update_task_time()
-                #if ts_next:
-                #    self.proc_queue.put(ts_next)
             except simpy.Interrupt as i:
-                print('Bat. ctrl. interrupted at', env.now, 'msg:', i.cause)
-
-
-    def execute2(self):
-        pass
+                print('Bat. ctrl. interrupted at', self.env.now, 'msg:', i.cause, 'finish time is', ts.stats.estimated_finish_time)
+                self.proc_queue.put(ts)
 
 
 class Executor(object):
@@ -118,6 +116,7 @@ class Executor(object):
         self.localcache = localcache
         self.transmit_time = 0
         self.compute_time = 0
+        self.rate = 10*(1<<30) # 600Mbps
 
         if serialization not in ['lazy', 'syncwdeser', 'syncnodeser']:
             raise NameError(f'Serialization type: {serialization} is not supported.')
@@ -133,9 +132,15 @@ class Executor(object):
         #print(f'{Fore.YELLOW}Executor {self.hostname}:{self.port} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
         return self.msg_queue.put(msg)
 
+
     def data_plane(self):
         while True:
             msg = yield self.msg_queue.get()
+            
+            if self.ip != msg.src:
+                transmit_time = msg.size*8.0/self.rate
+                yield self.env.timeout(transmit_time)
+            
             transfer_start = self.timeoutstanding[msg.reqid]
             transfer_stop = self.env.now
             #print(f'{Fore.WHITE}Executor {self.hostname}:{self.port} read {msg} at {self.env.now} {Style.RESET_ALL}')
@@ -143,15 +148,21 @@ class Executor(object):
                 _type = 'remote'
                 deser_latency = self.deserialization_latency(msg.data['size']) 
                 yield self.env.timeout(deser_latency)
-                #print(f'{Fore.LIGHTMAGENTA_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from {msg.src}:{msg.sport},{msg.reqid} at {self.env.now} {Style.RESET_ALL}')
+                print(f'{Fore.LIGHTMAGENTA_EX}Transfer {msg.src}:{msg.sport}-->{self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]}',
+                        f'request id {msg.reqid}, started at {round(transfer_start, 2)} ended at {round(transfer_stop, 2)},',
+                        f'transfer delay: {round(transfer_stop - transfer_start, 2)} {Style.RESET_ALL}')
             elif msg.rpc == 'localcache_response_data':
                 _type = 'local' 
                 deser_latency = 0
                 if self.serialization_policy == 'syncwdeser':
                     deser_latency = self.deserialization_latency(msg.data['size']) 
                     yield self.env.timeout(deser_latency)
-                #print(f'{Fore.LIGHTGREEN_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]} from local cache at {self.env.now} {Style.RESET_ALL}')
-            self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 'transfer_time': transfer_stop - transfer_start, 'type': _type, 'deserialization_time': deser_latency, 'ser_wait_time': msg.data['ser_wait']})
+                print(f'{Fore.LIGHTGREEN_EX}Executor {self.hostname}:{self.port} read {msg.data["obj"]} with size {msg.data["size"]}',
+                        f'from local cache, started at {transfer_start} ended at {transfer_stop}, transfer delay: {round(transfer_stop - transfer_start, 2)} {Style.RESET_ALL}')
+
+            self.outstanding[msg.reqid].succeed(value={'size': msg.data['size'], 
+                'transfer_time': transfer_stop - transfer_start, 'type': _type, 
+                'deserialization_time': deser_latency, 'ser_wait_time': msg.data['ser_wait']})
 
 
     def submit(self, task):
@@ -176,7 +187,7 @@ class Executor(object):
         outstanding = {}
 
         # incorporate the scheduling delay here:
-        yield self.env.timeout(task.schedule_delay)
+        #yield self.env.timeout(task.schedule_delay)
 
         start = self.env.now 
         task.stats.start_time = self.env.now
@@ -248,14 +259,16 @@ class Executor(object):
             serialization_delay = self.env.now - serialization_start
 
         task_endtoend_time = self.env.now - start
-        task.stats.end_time = task_endtoend_time
+        task.stats.end_time = self.env.now #task_endtoend_time
 
         # notify the completion of this task
         debug=True
         if debug:
-            print(f'Executor {Fore.LIGHTGREEN_EX}{self.hostname}:{self.port}{Style.RESET_ALL} lunches {Fore.LIGHTBLUE_EX}task {task} at {Fore.LIGHTYELLOW_EX}{start}{Style.RESET_ALL} and ends at {Fore.LIGHTRED_EX}{self.env.now}{Style.RESET_ALL}, execution time: {Fore.LIGHTRED_EX}{self.env.now - start}{Style.RESET_ALL}')
+            print(f'Executor {Fore.LIGHTGREEN_EX}{self.hostname}:{self.port}{Style.RESET_ALL} lunches',
+                    f'{Fore.LIGHTBLUE_EX}task {task} at {Fore.LIGHTYELLOW_EX}{start}{Style.RESET_ALL} and ends',
+                    f'at {Fore.LIGHTRED_EX}{self.env.now}{Style.RESET_ALL}, execution time: {Fore.LIGHTRED_EX}{self.env.now - start}{Style.RESET_ALL}')
         task.end_ts = self.env.now
-        task.completion_event.succeed(value={'name': task.name, 'transfer': transmit_time, 'cpu_time': task.exec_time, 'computation_time': task.stats.compute_delay,
+        task.completion_event.succeed(value={'name': task.name, 'id': task.id, 'transfer': transmit_time, 'cpu_time': task.exec_time, 'computation_time': task.stats.compute_delay,
             'remote_read': remote_read, 'local_read': local_read, 'fetch_time': fetch_time, 'start_ts': task.stats.start_time, 'worker': task.worker, 
             'deserialization_time': deser_time, 'serialization_time': serialization_delay, 'end_ts': task.stats.end_time,
             'task_endtoend_delay': task_endtoend_time, 'write': task.obj.size if task.obj else 0, 'wait_for_serialization': ser_time})

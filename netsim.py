@@ -139,24 +139,21 @@ class NetworkInterface(object):
     def receive(self):
         while True:
             msg = (yield self.in_store.get()) 
-            if self.debug:
-                print(f'NIC {self.ip} recieved message {msg} at {self.env.now}')
+            if False: print(f'{Fore.YELLOW}{self.ip}, {self.env.now} recieved message {msg} at {self.env.now} {Style.RESET_ALL}')
             if msg.dport not in self.recipients:
                 raise NameError(f'There is no recipient for this message at {self.ip}:{msg.dport}')
-            yield self.recipients[msg.dport].put(msg)
+            #yield self.recipients[msg.dport].put(msg)
+            self.recipients[msg.dport].put(msg)
 
 
     def send(self):
         while True:
             msg = (yield self.out_store.get()) 
-            self.busy = 1
-            self.byte_size -= msg.size
-            transmit_time = msg.size*8.0/self.rate
-            yield self.env.timeout(transmit_time)
+            #self.byte_size -= msg.size
+            #transmit_time = msg.size*8.0/self.rate
+            #yield self.env.timeout(transmit_time)
             self.out.put(msg)
-            self.busy = 0
-            if self.debug:
-                print(msg)
+            if False: print(f'{self.ip}, {self.env.now}: {msg}')
 
 
     def put(self, req):
@@ -204,19 +201,19 @@ class SwitchPort(object):
         self.busy = 0  # Used to track if a packet is currently being sent
         self.action = env.process(self.run())  # starts the run() method as a SimPy process
 
+
     def run(self):
         while True:
-            msg = (yield self.store.get())
+            msg = yield self.store.get()
             self.busy = 1
             self.byte_size -= msg.size
-            transmit_time = msg.size*8.0/self.rate
-            if self.debug:
-                print(f'{Fore.BLUE} {self.connected_ip} ip will recieve the {msg} response after {round(transmit_time, 2)}, rate is {self.rate} {Style.RESET_ALL}')
-            yield self.env.timeout(msg.size*8.0/self.rate)
+            #transmit_time = msg.size*8.0/self.rate
+            if False: print(f'{Fore.BLUE} {self.connected_ip} ip will recieve the {msg} response after {round(transmit_time, 2)}, rate is {self.rate} {Style.RESET_ALL}')
+            #yield self.env.timeout(msg.size*8.0/self.rate)
             self.out.put(msg)
             self.busy = 0
-            if self.debug:
-                print(msg)
+            if False: print(msg)
+
 
     def put(self, pkt):
         self.packets_rec += 1
@@ -233,7 +230,6 @@ class SwitchPort(object):
         else:
             self.byte_size = tmp_byte_count
             return self.store.put(pkt)
-
 
 
 
