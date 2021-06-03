@@ -99,7 +99,7 @@ class Scheduler(object):
 
     def execute_job(self, job):
         start_time = self.env.now
-        job.optimal_placement()
+        #job.optimal_placement()
 
         completions = job.get_task_completions()
         tasks = job.get_next_tasks()

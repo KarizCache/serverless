@@ -1,0 +1,30 @@
+digraph G {
+	node [color="#00FFFF" shape=ellipse style=filled]
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"0, color(-)"
+	node [color="#7FFFD4" shape=ellipse style=filled]
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"1, color(-)"
+	node [color="#00FFFF" shape=ellipse style=filled]
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"2, color(-)"
+	node [color="#FAEBD7" shape=ellipse style=filled]
+	node [color="#984ea3" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3, color(-)"
+	node [color="#00FFFF" shape=ellipse style=filled]
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"4, color(-)"
+	node [color="#7FFFD4" shape=ellipse style=filled]
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5, color(-)"
+	node [color="#F0F8FF" shape=ellipse style=filled]
+	node [color="#e41a1c" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"6, color(-)"
+	"0, color(-)" -> "2, color(-)"
+	"1, color(-)" -> "4, color(-)"
+	"2, color(-)" -> "3, color(-)"
+	"3, color(-)" -> "1, color(-)"
+	"5, color(-)" -> "3, color(-)"
+	"5, color(-)" -> "6, color(-)"
+	"6, color(-)" -> "1, color(-)"
+}
