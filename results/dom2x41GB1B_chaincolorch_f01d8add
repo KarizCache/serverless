@@ -1,0 +1,24 @@
+digraph G {
+	node [color="#4daf4a" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-1, color(1)"
+	node [color="#4daf4a" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"join, color(1)"
+	node [color="#4daf4a" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-0, color(1)"
+	node [color="#4daf4a" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-1, color(1)"
+	node [color="#ff7f00" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-0, color(2)"
+	node [color="#ff7f00" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-0, color(2)"
+	node [color="#4daf4a" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-1, color(1)"
+	"2-1, color(1)" -> "3-1, color(1)"
+	"0-0, color(1)" -> "1-1, color(1)"
+	"0-0, color(1)" -> "1-0, color(2)"
+	"1-1, color(1)" -> "2-1, color(1)"
+	"2-0, color(2)" -> "3-1, color(1)"
+	"1-0, color(2)" -> "2-1, color(1)"
+	"1-0, color(2)" -> "2-0, color(2)"
+	"3-1, color(1)" -> "join, color(1)"
+}
