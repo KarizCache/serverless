@@ -1,0 +1,106 @@
+digraph G {
+	node [color="#ff7f00" fillcolor="#7FFFD4" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-2, color(3)"
+	node [color="#e41a1c" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-0, color(1)"
+	node [color="#ff7f00" fillcolor="#7FFFD4" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-2, color(3)"
+	node [color="#e41a1c" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"join, color(1)"
+	node [color="#984ea3" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-1, color(2)"
+	node [color="#4daf4a" fillcolor="#F0FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-3, color(4)"
+	node [color="#984ea3" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-1, color(2)"
+	node [color="#ff7f00" fillcolor="#7FFFD4" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-2, color(3)"
+	node [color="#e41a1c" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-0, color(1)"
+	node [color="#e41a1c" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-0, color(1)"
+	node [color="#ff7f00" fillcolor="#7FFFD4" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-2, color(3)"
+	node [color="#4daf4a" fillcolor="#F0FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-3, color(4)"
+	node [color="#e41a1c" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-0, color(1)"
+	node [color="#e41a1c" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-0, color(1)"
+	node [color="#984ea3" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-1, color(2)"
+	node [color="#984ea3" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-1, color(2)"
+	node [color="#e41a1c" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-0, color(1)"
+	node [color="#ff7f00" fillcolor="#7FFFD4" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-2, color(3)"
+	node [color="#4daf4a" fillcolor="#F0FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-3, color(4)"
+	node [color="#4daf4a" fillcolor="#F0FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-3, color(4)"
+	node [color="#984ea3" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-1, color(2)"
+	node [color="#4daf4a" fillcolor="#F0FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-3, color(4)"
+	node [color="#ff7f00" fillcolor="#7FFFD4" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-2, color(3)"
+	node [color="#4daf4a" fillcolor="#F0FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-3, color(4)"
+	node [color="#984ea3" fillcolor="#00FFFF" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-1, color(2)"
+	"1-2, color(3)" -> "2-3, color(4)"
+	"1-2, color(3)" -> "2-2, color(3)"
+	"1-2, color(3)" -> "2-1, color(2)"
+	"4-0, color(1)" -> "5-0, color(1)"
+	"4-0, color(1)" -> "5-1, color(2)"
+	"0-2, color(3)" -> "1-2, color(3)"
+	"0-2, color(3)" -> "1-1, color(2)"
+	"0-2, color(3)" -> "1-3, color(4)"
+	"1-1, color(2)" -> "2-0, color(1)"
+	"1-1, color(2)" -> "2-2, color(3)"
+	"1-1, color(2)" -> "2-1, color(2)"
+	"3-3, color(4)" -> "4-2, color(3)"
+	"3-3, color(4)" -> "4-3, color(4)"
+	"4-1, color(2)" -> "5-2, color(3)"
+	"4-1, color(2)" -> "5-0, color(1)"
+	"4-1, color(2)" -> "5-1, color(2)"
+	"4-2, color(3)" -> "5-2, color(3)"
+	"4-2, color(3)" -> "5-1, color(2)"
+	"4-2, color(3)" -> "5-3, color(4)"
+	"0-0, color(1)" -> "1-1, color(2)"
+	"0-0, color(1)" -> "1-0, color(1)"
+	"3-0, color(1)" -> "4-0, color(1)"
+	"3-0, color(1)" -> "4-1, color(2)"
+	"5-2, color(3)" -> "join, color(1)"
+	"2-3, color(4)" -> "3-3, color(4)"
+	"2-3, color(4)" -> "3-2, color(3)"
+	"5-0, color(1)" -> "join, color(1)"
+	"1-0, color(1)" -> "2-0, color(1)"
+	"1-0, color(1)" -> "2-1, color(2)"
+	"0-1, color(2)" -> "1-2, color(3)"
+	"0-1, color(2)" -> "1-1, color(2)"
+	"0-1, color(2)" -> "1-0, color(1)"
+	"5-1, color(2)" -> "join, color(1)"
+	"2-0, color(1)" -> "3-0, color(1)"
+	"2-0, color(1)" -> "3-1, color(2)"
+	"3-2, color(3)" -> "4-1, color(2)"
+	"3-2, color(3)" -> "4-2, color(3)"
+	"3-2, color(3)" -> "4-3, color(4)"
+	"5-3, color(4)" -> "join, color(1)"
+	"4-3, color(4)" -> "5-2, color(3)"
+	"4-3, color(4)" -> "5-3, color(4)"
+	"3-1, color(2)" -> "4-0, color(1)"
+	"3-1, color(2)" -> "4-1, color(2)"
+	"3-1, color(2)" -> "4-2, color(3)"
+	"0-3, color(4)" -> "1-2, color(3)"
+	"0-3, color(4)" -> "1-3, color(4)"
+	"2-2, color(3)" -> "3-3, color(4)"
+	"2-2, color(3)" -> "3-2, color(3)"
+	"2-2, color(3)" -> "3-1, color(2)"
+	"1-3, color(4)" -> "2-3, color(4)"
+	"1-3, color(4)" -> "2-2, color(3)"
+	"2-1, color(2)" -> "3-0, color(1)"
+	"2-1, color(2)" -> "3-2, color(3)"
+	"2-1, color(2)" -> "3-1, color(2)"
+}

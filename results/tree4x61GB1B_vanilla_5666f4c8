@@ -1,0 +1,37 @@
+digraph G {
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-0, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"join, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-0, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-3, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-0, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-1, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-0, color(-)"
+	node [color="#984ea3" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-1, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-0, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-0, color(-)"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-2, color(-)"
+	"1-0, color(-)" -> "2-0, color(-)"
+	"4-0, color(-)" -> "5-0, color(-)"
+	"4-0, color(-)" -> "5-1, color(-)"
+	"5-3, color(-)" -> "join, color(-)"
+	"3-0, color(-)" -> "4-0, color(-)"
+	"3-0, color(-)" -> "4-1, color(-)"
+	"4-1, color(-)" -> "5-3, color(-)"
+	"4-1, color(-)" -> "5-2, color(-)"
+	"5-0, color(-)" -> "join, color(-)"
+	"5-1, color(-)" -> "join, color(-)"
+	"0-0, color(-)" -> "1-0, color(-)"
+	"2-0, color(-)" -> "3-0, color(-)"
+	"5-2, color(-)" -> "join, color(-)"
+}
