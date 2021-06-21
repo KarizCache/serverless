@@ -1,0 +1,35 @@
+digraph G {
+	node [color="#FAEBD7" shape=ellipse style=filled]
+	node [color="#984ea3" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"0, color(3)"
+	node [color="#FAEBD7" shape=ellipse style=filled]
+	node [color="#984ea3" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"1, color(2)"
+	node [color="#F0F8FF" shape=ellipse style=filled]
+	node [color="#e41a1c" fillcolor="#F0F8FF" penwidth=3 shape=ellipse style="filled,solid"]
+	"2, color(2)"
+	node [color="#FAEBD7" shape=ellipse style=filled]
+	node [color="#984ea3" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"3, color(3)"
+	node [color="#F0F8FF" shape=ellipse style=filled]
+	node [color="#e41a1c" fillcolor="#F0F8FF" penwidth=3 shape=ellipse style="filled,solid"]
+	"4, color(1)"
+	node [color="#F0F8FF" shape=ellipse style=filled]
+	node [color="#e41a1c" fillcolor="#F0F8FF" penwidth=3 shape=ellipse style="filled,solid"]
+	"5, color(2)"
+	node [color="#FAEBD7" shape=ellipse style=filled]
+	node [color="#984ea3" fillcolor="#FAEBD7" penwidth=3 shape=ellipse style="filled,solid"]
+	"6, color(1)"
+	"0, color(3)" -> "1, color(2)"
+	"0, color(3)" -> "6, color(1)"
+	"1, color(2)" -> "6, color(1)"
+	"2, color(2)" -> "1, color(2)"
+	"2, color(2)" -> "6, color(1)"
+	"3, color(3)" -> "0, color(3)"
+	"3, color(3)" -> "2, color(2)"
+	"3, color(3)" -> "6, color(1)"
+	"4, color(1)" -> "5, color(2)"
+	"4, color(1)" -> "6, color(1)"
+	"5, color(2)" -> "2, color(2)"
+	"5, color(2)" -> "6, color(1)"
+}
