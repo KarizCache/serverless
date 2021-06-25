@@ -175,7 +175,7 @@ def find_optimal(g):
 
     # Communication Delay matrix - Cost of sending results of job from
     # agent to agent
-    bw = 8*(1<<30)/(1<<3)
+    bw = 4*(1<<30)/(1<<3)
     C = defaultdict(lambda:0)
     for v in g.vertices():
         for src in workers:
@@ -222,11 +222,12 @@ for bnch in benchmarks:
     g = build_graph(bnch)
     sched2 = find_optimal(g)
 
-    with open(f'{results_dir}/{bnch.split("_")[0]}.optimal', 'w') as fd:
+    with open(f'{results_dir}/{bnch}.4gbps.optimal', 'w') as fd:
         for s in sched2:
-            if isinstance(s[0], tuple): continue
-            print(s)
-            fd.write(f'{s[0]},{s[1]},{s[2]}\n')
+            if isinstance(s[0], tuple):
+                fd.write(f'e,{s[0][0]},{s[0][1]},{s[1]},{s[2][0]},{s[2][1]}\n')
+            else:
+                fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
             #v = int(s[0].replace('t', ''))
             #g.vp.worker[v] = s[2] 
     break
