@@ -1,0 +1,1 @@
+./task_bench.py -scheduler 10.255.23.115:8786 -name test1 -type dom -output 1073741824 -kernel compute_bound -iter 1073741824
