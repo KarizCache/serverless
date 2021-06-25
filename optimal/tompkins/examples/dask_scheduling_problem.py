@@ -209,8 +209,8 @@ worker_color = {'10.255.23.108': '#e41a1c',
     '10.255.23.110': '#ff7f00',
     '10.255.23.115': '#4daf4a'}
 
-results_dir = '/local0/serverless/evaluation/plots' 
-stats_dir='/opt/dask-distributed/benchmark/stats'
+results_dir = './benchmarks' 
+stats_dir='./benchmarks'
 #benchmarks = get_benchmarks()
 benchmarks = ['ingressw6']
 for bnch in benchmarks:
@@ -222,7 +222,7 @@ for bnch in benchmarks:
     g = build_graph(bnch)
     sched2 = find_optimal(g)
 
-    with open(f'/opt/dask-distributed/benchmark/stats/{bnch.split("_")[0]}.optimal', 'w') as fd:
+    with open(f'{results_dir}/{bnch.split("_")[0]}.optimal', 'w') as fd:
         for s in sched2:
             if isinstance(s[0], tuple): continue
             print(s)
