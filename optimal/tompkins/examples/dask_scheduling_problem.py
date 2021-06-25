@@ -215,7 +215,7 @@ stats_dir='./benchmarks'
 benchmarks = ['ingressw6']
 for bnch in benchmarks:
 
-    for bw in [8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
+    for bw in [32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
         print(f'process {bnch}')
         g = build_graph(bnch)
         sched2 = find_optimal(g, bw)
