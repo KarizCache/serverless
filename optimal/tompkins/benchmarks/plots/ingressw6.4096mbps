@@ -1,0 +1,22 @@
+digraph G {
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	0
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	1
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	2
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	3
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	4
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	5
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	6
+	0 -> 6
+	1 -> 6
+	2 -> 6
+	3 -> 6
+	4 -> 6
+	5 -> 6
+}
