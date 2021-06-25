@@ -144,7 +144,7 @@ import pulp as pl
 from colorama import Fore, Style
 
 
-def find_optimal(g):
+def find_optimal(g, bw):
     n_workers = 6
     workers = [f'w{i}' for i in range(n_workers)]
     
@@ -175,7 +175,7 @@ def find_optimal(g):
 
     # Communication Delay matrix - Cost of sending results of job from
     # agent to agent
-    bw = 4*(1<<30)/(1<<3)
+    bw = bw*(1<<20)/(1<<3)
     C = defaultdict(lambda:0)
     for v in g.vertices():
         for src in workers:
@@ -214,21 +214,19 @@ stats_dir='./benchmarks'
 #benchmarks = get_benchmarks()
 benchmarks = ['ingressw6']
 for bnch in benchmarks:
-    #if bnch != 'ingress': 
-        #print(f'skip {bnch} for now')
-    #    continue
 
-    print(f'process {bnch}')
-    g = build_graph(bnch)
-    sched2 = find_optimal(g)
-
-    with open(f'{results_dir}/{bnch}.4gbps.optimal', 'w') as fd:
-        for s in sched2:
-            if isinstance(s[0], tuple):
-                fd.write(f'e,{s[0][0]},{s[0][1]},{s[1]},{s[2][0]},{s[2][1]}\n')
-            else:
-                fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
-            #v = int(s[0].replace('t', ''))
-            #g.vp.worker[v] = s[2] 
+    for bw in [8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
+        print(f'process {bnch}')
+        g = build_graph(bnch)
+        sched2 = find_optimal(g, bw)
+    
+        with open(f'{results_dir}/{bnch}.{bw}mbps.optimal', 'w') as fd:
+            for s in sched2:
+                if isinstance(s[0], tuple):
+                    fd.write(f'e,{s[0][0]},{s[0][1]},{s[1]},{s[2][0]},{s[2][1]}\n')
+                else:
+                    fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
+                #v = int(s[0].replace('t', ''))
+                #g.vp.worker[v] = s[2] 
     break
 
