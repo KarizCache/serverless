@@ -1,0 +1,15 @@
+v,0,execute_point_no_scratch-1-0,5
+v,1,execute_point_no_scratch-2-0,5
+v,2,join,1
+v,3,execute_point_no_scratch-3-1,5
+v,4,execute_point_no_scratch-0-0,5
+v,5,execute_point_no_scratch-1-1,5
+v,6,execute_point_no_scratch-2-1,5
+e,4,0,0
+e,0,1,0
+e,3,2,0
+e,6,3,0
+e,1,3,0
+e,4,5,0
+e,0,6,0
+e,5,6,0

@@ -145,7 +145,7 @@ from colorama import Fore, Style
 
 
 def find_optimal(g, bw):
-    n_workers = 6
+    n_workers = 4
     workers = [f'w{i}' for i in range(n_workers)]
     
     links = defaultdict(lambda:0)
@@ -154,7 +154,7 @@ def find_optimal(g, bw):
             links[f'{src}',f'{dst}'] = f'{src}->{dst}'
 
     # Maximum makespan
-    M = 100
+    M = 1000
     tasks = defaultdict(lambda:0)
     for v in g.vertices():
         tasks[f't{v}'] = 0
@@ -212,7 +212,7 @@ worker_color = {'10.255.23.108': '#e41a1c',
 results_dir = './benchmarks' 
 stats_dir='./benchmarks'
 #benchmarks = get_benchmarks()
-benchmarks = ['ingressw6']
+benchmarks = ['dom2x41GB1B']
 for bnch in benchmarks:
 
     for bw in [32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
@@ -228,5 +228,6 @@ for bnch in benchmarks:
                     fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
                 #v = int(s[0].replace('t', ''))
                 #g.vp.worker[v] = s[2] 
+        break
     break
 
