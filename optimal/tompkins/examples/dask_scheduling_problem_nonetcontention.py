@@ -15,7 +15,7 @@ import matplotlib.colors as mcolors
 import sys
 import utils
 
-from tompkins.ilpwnc import schedule, jobs_when_where
+from tompkins.ilp import schedule, jobs_when_where
 from collections import defaultdict
 from pulp import value
 
@@ -48,6 +48,7 @@ def get_benchmarks():
         except AssertionError:
             pass
     return benchmarks
+
 
 
 def build_graph(benchmark):
@@ -141,52 +142,50 @@ def plot_graph(g, benchmark, optimal=False):
 
 
 import pulp as pl
-from colorama import Fore, Style
 import time
-
 
 def find_optimal(g, bw):
     n_workers = 4
     workers = [f'w{i}' for i in range(n_workers)]
-    
-    links = defaultdict(lambda:0)
-    for src in workers:
-        for dst in workers:
-            links[f'{src}',f'{dst}'] = f'{src}->{dst}'
+
+
+    # Job Release Times - Additional constraints on availablility of Jobs
+    # R = np.zeros(n)
+    R = defaultdict(lambda:0)
 
     # Maximum makespan
-    M = 1000
-    tasks = defaultdict(lambda:0)
+    M = 100
+    B = defaultdict(lambda:1)
+    agents = workers
+    jobs = []
     for v in g.vertices():
-        tasks[f't{v}'] = 0
-
-    comms = defaultdict(lambda:0)
-    for e in g.edges():
-        comms[f't{e.source()}',f't{e.target()}'] = 0
-
+        jobs.append(f't{v}')
+        
+    n = len(jobs)
+    m = len(agents)
     P = defaultdict(lambda:0)
     for e in g.edges():
-         P[f't{e.source()}', f't{e.target()}'] = 1
+        P[f't{e.source()}',f't{e.target()}'] = 1
     
     # computation
     D = defaultdict(lambda:0)
     for v in g.vertices():
-        for w in workers:
-            D[f't{v}', w] = g.vp.runtime[v]
+        for a in agents:
+            D[f't{v}', a] = g.vp.runtime[v] # statistics[g.vp.name[v]]['runtime']
 
     # Communication Delay matrix - Cost of sending results of job from
     # agent to agent
+    #bw = 10*(1<<30)/(1<<3)
     bw = bw*(1<<20)/(1<<3)
     C = defaultdict(lambda:0)
     for v in g.vertices():
-        for src in workers:
-            for dst in workers:
-                C[f't{v}', src, dst] = 0 if src == dst else g.vp.output_size[v]/bw # 0 --> cost_serialization, :q
-    
+        for a in agents:
+            for b in agents:
+                C[f't{v}', a, b] = 0 if a == b else g.vp.output_size[v]/bw # 0 --> cost_serialization
 
-    # Set up the Mixed Integer Linear Program
     start = time.time()
-    prob, X, S, N, SN, Cmax = schedule(tasks, comms, workers, links, D, C, P, M)
+    # Set up the Mixed Integer Linear Program
+    prob, X, S, Cmax = schedule(jobs, agents, D, C, R, B, P, M)
     solver = pl.GUROBI_CMD()
     prob.solve(solver)
     latency = time.time() - start
@@ -194,54 +193,39 @@ def find_optimal(g, bw):
     print('----------------------------------------------> # of variables', prob.numVariables())
     print('---------------------------------------------->', latency)
 
-    #prob.solve()
-    print(N)
-
     print("Makespan: ", value(Cmax))
-    sched = jobs_when_where(prob, X, S, N, SN, Cmax)
+    sched = jobs_when_where(prob, X, S, Cmax)
     print("Schedule: ", sched)
 
-    #sched2 = []
-    #for j in sched:
-    #    new = j + (j[1] + D[j[0], j[2]], g.vp.name[int(j[0].replace('t', ''))])
-    #    sched2.append(new)
-    #print("Schedule: ", sched2)
-    return sched,  {'makespan': value(Cmax),
-            'constraints': len(prob.constraints.keys()),
+    sched2 = []
+    for j in sched:
+        new = j + (j[1] + D[j[0], j[2]], g.vp.name[int(j[0].replace('t', ''))])
+        sched2.append(new)
+    print("Schedule: ", sched2)
+    return sched2, {'makespan': value(Cmax), 
+            'constraints': len(prob.constraints.keys()), 
             'variables': prob.numVariables(),
             'time': float(latency)}
 
 
 
-
-
-worker_color = {'10.255.23.108': '#e41a1c',
-    '10.255.23.109': '#984ea3',
-    '10.255.23.110': '#ff7f00',
-    '10.255.23.115': '#4daf4a'}
-
-results_dir = './benchmarks' 
+results_dir = './benchmarks'
 stats_dir='./benchmarks'
 #benchmarks = get_benchmarks()
-#benchmarks = ['nearest4x61GB1B']
 benchmarks = ['dom4x61GB1B', 'dom2x41GB1B', 'tree4x61GB1B']
 for bnch in benchmarks:
-
-    for bw in [32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
+    for bw in [512, 32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 256, 128, 64, 32]:
         print(f'process {bnch}')
         g = build_graph(bnch)
         sched2, stats = find_optimal(g, bw)
-    
+
         with open(f'{results_dir}/optimal_compuation_stats.csv', 'a') as fd:
-            fd.write(f'{bnch},{stats["makespan"]},{stats["constraints"]},{stats["variables"]},{stats["time"]},yes,{bw}\n')
+            fd.write(f'{bnch},{stats["makespan"]},{stats["constraints"]},{stats["variables"]},{stats["time"]},no,{bw}\n')
 
-
-        with open(f'{results_dir}/{bnch}.{bw}mbps.optimal', 'w') as fd:
+        with open(f'{results_dir}/{bnch}.nonetworkcontention.{bw}mbps.optimal', 'w') as fd:
             for s in sched2:
-                if isinstance(s[0], tuple):
-                    fd.write(f'e,{s[0][0]},{s[0][1]},{s[1]},{s[2][0]},{s[2][1]}\n')
-                else:
-                    fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
+                fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
+                #fd.write(f'{s[4]},{s[3]},{s[0]},{s[1]},{s[2]}\n')
                 #v = int(s[0].replace('t', ''))
                 #g.vp.worker[v] = s[2] 
         #break
