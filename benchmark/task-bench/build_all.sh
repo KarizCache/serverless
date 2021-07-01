@@ -471,7 +471,7 @@ fi)
 echo "Copy files"
 cp ./core/libcore* /lib/x86_64-linux-gnu/;
 
-
+cp ./dask/*.py  /azure-functions-host-msr/dask-distributed/
 
 echo
 echo "Build completed successfully."
