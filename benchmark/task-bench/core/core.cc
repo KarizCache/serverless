@@ -590,7 +590,7 @@ void TaskGraph::execute_point(long timestep, long point,
 
 
           for (size_t i = 0; i < input_bytes[idx]/sizeof(std::pair<long, long>); ++i) {
-	    printf("task <%ld, %ld> recieves <%ld, %ld> at input, selectivity %f\n",timestep, point, input[i].first, input[i].second, selectivity);
+		  //printf("task <%ld, %ld> recieves <%ld, %ld> at input, selectivity %f\n",timestep, point, input[i].first, input[i].second, selectivity);
 #ifdef DEBUG_CORE
             if (input[i].first != timestep - 1 || input[i].second != dep) {
               printf("ERROR: Task Bench detected corrupted value in task (graph %ld timestep %ld point %ld) input %ld\n  At position %lu within the buffer, expected value (timestep %ld point %ld) but got (timestep %ld point %ld)\n",
