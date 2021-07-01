@@ -117,6 +117,8 @@ def task_graph_dependencies(graph, timestep, point):
                 yield dep
 
 
+import math 
+
 def execute_point_impl(graph_array, timestep, point, scratch, *inputs):
     graph = decode_task_graph(graph_array)
 
@@ -124,8 +126,12 @@ def execute_point_impl(graph_array, timestep, point, scratch, *inputs):
     input_ptrs = ffi.new(
         "char *[]", [ffi.cast("char *", i.ctypes.data) for i in inputs])
     input_sizes = ffi.new("size_t []", [i.shape[0] for i in inputs])
+    
 
-    output = np.empty(graph.output_bytes_per_task, dtype=np.ubyte)
+    print('------------------------>', type(graph.output_bytes_per_task), int(math.pow(2, point)))
+    output_bytes = int(int(graph.output_bytes_per_task)//int(math.pow(2, point)))
+    print(output_bytes, type(output_bytes))
+    output = np.empty(output_bytes, dtype=np.ubyte)
     output_ptr = ffi.cast("char *", output.ctypes.data)
 
     if scratch is not None:

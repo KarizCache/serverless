@@ -204,6 +204,9 @@ fi)
     make -C chapel
 fi)
 
+
+DEBUG=1
+
 (if [[ $USE_X10 -eq 1 ]]; then
     source "$X10_DIR"/env.sh
 
@@ -463,6 +466,12 @@ fi)
     make -C tensorflow/ops clean
     make -C tensorflow/ops all -j$THREADS
 fi)
+
+
+echo "Copy files"
+cp ./core/libcore* /lib/x86_64-linux-gnu/;
+
+
 
 echo
 echo "Build completed successfully."
