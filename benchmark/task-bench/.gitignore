@@ -9,7 +9,10 @@
 *.dSYM
 *.pyc
 __pycache__
-core
+core/*.o
+core/*.a
+core/*.so
+
 
 *.csv
 *.out
