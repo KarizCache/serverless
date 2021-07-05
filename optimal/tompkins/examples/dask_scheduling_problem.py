@@ -38,10 +38,8 @@ def get_benchmarks():
     for _file in os.listdir(stats_dir):
         try:
             bnch = _file.rsplit('.', 1)[0]
-            assert os.path.isfile(os.path.join(stats_dir, f'{bnch}.g')) \
-                    and os.path.isfile(os.path.join(stats_dir, f'{bnch}.json')) \
-                    and os.path.isfile(os.path.join(stats_dir, f'{bnch}.colors'))
-                    
+            assert os.path.isfile(os.path.join(stats_dir, f'{bnch}.iopt'))
+
             app = bnch #, scheduler =  bnch.rsplit(':', 1)
             scheduler = 'vanilla'
             benchmarks[bnch] = {'app': app, 'scheduler': scheduler, 'benchmark': bnch}
@@ -52,7 +50,7 @@ def get_benchmarks():
 
 def build_graph(benchmark):
     css_colors = list(mcolors.CSS4_COLORS.keys())
-    gfile = os.path.join(stats_dir, f'{benchmark}.g')
+    gfile = os.path.join(stats_dir, f'{benchmark}.iopt')
 
     with open(gfile, 'r') as fd:
         raw = fd.read().split('\n')
@@ -65,23 +63,22 @@ def build_graph(benchmark):
         g.vertex_properties['color'] = g.new_vertex_property("string", '#e0e0e0')
         g.vertex_properties['icolor'] = g.new_vertex_property("int")
         g.vertex_properties['output_size'] = g.new_vertex_property("int")
-        g.vertex_properties['runtime'] = g.new_vertex_property("int")
+        g.vertex_properties['runtime'] = g.new_vertex_property("float")
 
         for ln in raw:
             if ln.startswith('v'):
-                _, vid, name, runtime = ln.split(',', 3)
+                _, vid, name, runtime, output_size = ln.split(',', 4)
                 v = g.add_vertex()
                 vid_to_vx[vid] = v
                 name_to_vid[name] = vid
                 g.vp.name[v] = name
-                g.vp.runtime[v] = int(runtime) # 1 second
-                g.vp.output_size[v] = 1<<30 # 1GB
+                g.vp.runtime[v] = float(runtime) # 1 second
+                g.vp.output_size[v] = float(output_size) # 1GB
                 g.vp.color[v] = '#e0e0e0'
-
 
         for ln in raw:
             if ln.startswith('e'):
-                _, vsrc, vdst, _ = ln.split(',', 3)
+                _, vsrc, vdst = ln.split(',')
                 g.add_edge(vid_to_vx[vsrc], vid_to_vx[vdst])
     return g
 
@@ -212,9 +209,6 @@ def find_optimal(g, bw):
             'time': float(latency)}
 
 
-
-
-
 worker_color = {'10.255.23.108': '#e41a1c',
     '10.255.23.109': '#984ea3',
     '10.255.23.110': '#ff7f00',
@@ -222,20 +216,19 @@ worker_color = {'10.255.23.108': '#e41a1c',
 
 results_dir = './benchmarks' 
 stats_dir='./benchmarks'
-#benchmarks = get_benchmarks()
+benchmarks = get_benchmarks()
 #benchmarks = ['nearest4x61GB1B']
-benchmarks = ['dom4x61GB1B', 'dom2x41GB1B', 'tree4x61GB1B']
-for bnch in benchmarks:
-
-    for bw in [32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
+#benchmarks = ['dom4x61GB1B', 'dom2x41GB1B', 'tree4x61GB1B']
+for bnch in sorted(benchmarks, reverse=True):
+    #if 'all_to_all' in bnch or 'nearest' in bnch or 'stencil_1d' in bnch or 'fft' in bnch: continue
+    if 'stencil_1d' not in bnch: continue
+    for bw in [600, 32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
         print(f'process {bnch}')
         g = build_graph(bnch)
         sched2, stats = find_optimal(g, bw)
     
         with open(f'{results_dir}/optimal_compuation_stats.csv', 'a') as fd:
             fd.write(f'{bnch},{stats["makespan"]},{stats["constraints"]},{stats["variables"]},{stats["time"]},yes,{bw}\n')
-
-
         with open(f'{results_dir}/{bnch}.{bw}mbps.optimal', 'w') as fd:
             for s in sched2:
                 if isinstance(s[0], tuple):
@@ -244,6 +237,6 @@ for bnch in benchmarks:
                     fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
                 #v = int(s[0].replace('t', ''))
                 #g.vp.worker[v] = s[2] 
-        #break
+        break
     #break
 
