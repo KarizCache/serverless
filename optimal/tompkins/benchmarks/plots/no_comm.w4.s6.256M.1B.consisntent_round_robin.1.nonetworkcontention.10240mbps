@@ -1,76 +1,76 @@
 digraph G {
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	0
+	join
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	1
+	"execute_point_no_scratch-5-0"
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	2
+	"execute_point_no_scratch-5-1"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	3
+	"execute_point_no_scratch-5-2"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	4
+	"execute_point_no_scratch-5-3"
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	5
+	"execute_point_no_scratch-4-0"
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	6
+	"execute_point_no_scratch-4-1"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	7
+	"execute_point_no_scratch-4-2"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	8
+	"execute_point_no_scratch-4-3"
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	9
+	"execute_point_no_scratch-3-0"
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	10
+	"execute_point_no_scratch-3-1"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	11
+	"execute_point_no_scratch-3-2"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	12
+	"execute_point_no_scratch-3-3"
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	13
+	"execute_point_no_scratch-2-0"
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	14
+	"execute_point_no_scratch-2-1"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	15
+	"execute_point_no_scratch-2-2"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	16
+	"execute_point_no_scratch-2-3"
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	17
+	"execute_point_no_scratch-1-0"
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	18
+	"execute_point_no_scratch-1-1"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	19
+	"execute_point_no_scratch-1-2"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	20
+	"execute_point_no_scratch-1-3"
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	21
+	"execute_point_no_scratch-0-0"
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	22
+	"execute_point_no_scratch-0-1"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	23
+	"execute_point_no_scratch-0-2"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	24
-	2 -> 0 [label="128MB"]
-	3 -> 0 [label="64MB"]
-	4 -> 0 [label="32MB"]
-	1 -> 0 [label="256MB"]
-	5 -> 1 [label="256MB"]
-	6 -> 2 [label="128MB"]
-	7 -> 3 [label="64MB"]
-	8 -> 4 [label="32MB"]
-	9 -> 5 [label="256MB"]
-	10 -> 6 [label="128MB"]
-	11 -> 7 [label="64MB"]
-	12 -> 8 [label="32MB"]
-	13 -> 9 [label="256MB"]
-	14 -> 10 [label="128MB"]
-	15 -> 11 [label="64MB"]
-	16 -> 12 [label="32MB"]
-	17 -> 13 [label="256MB"]
-	18 -> 14 [label="128MB"]
-	19 -> 15 [label="64MB"]
-	20 -> 16 [label="32MB"]
-	21 -> 17 [label="256MB"]
-	22 -> 18 [label="128MB"]
-	23 -> 19 [label="64MB"]
-	24 -> 20 [label="32MB"]
+	"execute_point_no_scratch-0-3"
+	"execute_point_no_scratch-5-1" -> join [label="128MB"]
+	"execute_point_no_scratch-5-2" -> join [label="64MB"]
+	"execute_point_no_scratch-5-3" -> join [label="32MB"]
+	"execute_point_no_scratch-5-0" -> join [label="256MB"]
+	"execute_point_no_scratch-4-0" -> "execute_point_no_scratch-5-0" [label="256MB"]
+	"execute_point_no_scratch-4-1" -> "execute_point_no_scratch-5-1" [label="128MB"]
+	"execute_point_no_scratch-4-2" -> "execute_point_no_scratch-5-2" [label="64MB"]
+	"execute_point_no_scratch-4-3" -> "execute_point_no_scratch-5-3" [label="32MB"]
+	"execute_point_no_scratch-3-0" -> "execute_point_no_scratch-4-0" [label="256MB"]
+	"execute_point_no_scratch-3-1" -> "execute_point_no_scratch-4-1" [label="128MB"]
+	"execute_point_no_scratch-3-2" -> "execute_point_no_scratch-4-2" [label="64MB"]
+	"execute_point_no_scratch-3-3" -> "execute_point_no_scratch-4-3" [label="32MB"]
+	"execute_point_no_scratch-2-0" -> "execute_point_no_scratch-3-0" [label="256MB"]
+	"execute_point_no_scratch-2-1" -> "execute_point_no_scratch-3-1" [label="128MB"]
+	"execute_point_no_scratch-2-2" -> "execute_point_no_scratch-3-2" [label="64MB"]
+	"execute_point_no_scratch-2-3" -> "execute_point_no_scratch-3-3" [label="32MB"]
+	"execute_point_no_scratch-1-0" -> "execute_point_no_scratch-2-0" [label="256MB"]
+	"execute_point_no_scratch-1-1" -> "execute_point_no_scratch-2-1" [label="128MB"]
+	"execute_point_no_scratch-1-2" -> "execute_point_no_scratch-2-2" [label="64MB"]
+	"execute_point_no_scratch-1-3" -> "execute_point_no_scratch-2-3" [label="32MB"]
+	"execute_point_no_scratch-0-0" -> "execute_point_no_scratch-1-0" [label="256MB"]
+	"execute_point_no_scratch-0-1" -> "execute_point_no_scratch-1-1" [label="128MB"]
+	"execute_point_no_scratch-0-2" -> "execute_point_no_scratch-1-2" [label="64MB"]
+	"execute_point_no_scratch-0-3" -> "execute_point_no_scratch-1-3" [label="32MB"]
 }
