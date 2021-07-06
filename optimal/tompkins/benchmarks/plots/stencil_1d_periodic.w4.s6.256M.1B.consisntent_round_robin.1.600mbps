@@ -1,0 +1,116 @@
+digraph G {
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	join
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-0"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-1"
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-2"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-3"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-0"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-1"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-3"
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"4-2"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-0"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-1"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-3"
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-2"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-0"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-1"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-3"
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-2"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-0"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-1"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-3"
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"1-2"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-0"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-1"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-3"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"0-2"
+	"5-1" -> join [label="128MB"]
+	"5-2" -> join [label="64MB"]
+	"5-0" -> join [label="256MB"]
+	"5-3" -> join [label="32MB"]
+	"4-0" -> "5-0" [label="256MB"]
+	"4-3" -> "5-0" [label="32MB"]
+	"4-1" -> "5-0" [label="128MB"]
+	"4-0" -> "5-1" [label="256MB"]
+	"4-2" -> "5-1" [label="64MB"]
+	"4-1" -> "5-1" [label="128MB"]
+	"4-3" -> "5-2" [label="32MB"]
+	"4-2" -> "5-2" [label="64MB"]
+	"4-1" -> "5-2" [label="128MB"]
+	"4-3" -> "5-3" [label="32MB"]
+	"4-0" -> "5-3" [label="256MB"]
+	"4-2" -> "5-3" [label="64MB"]
+	"3-1" -> "4-0" [label="128MB"]
+	"3-3" -> "4-0" [label="32MB"]
+	"3-0" -> "4-0" [label="256MB"]
+	"3-2" -> "4-1" [label="64MB"]
+	"3-1" -> "4-1" [label="128MB"]
+	"3-0" -> "4-1" [label="256MB"]
+	"3-2" -> "4-3" [label="64MB"]
+	"3-3" -> "4-3" [label="32MB"]
+	"3-0" -> "4-3" [label="256MB"]
+	"3-2" -> "4-2" [label="64MB"]
+	"3-1" -> "4-2" [label="128MB"]
+	"3-3" -> "4-2" [label="32MB"]
+	"2-1" -> "3-0" [label="128MB"]
+	"2-0" -> "3-0" [label="256MB"]
+	"2-3" -> "3-0" [label="32MB"]
+	"2-2" -> "3-1" [label="64MB"]
+	"2-1" -> "3-1" [label="128MB"]
+	"2-0" -> "3-1" [label="256MB"]
+	"2-2" -> "3-3" [label="64MB"]
+	"2-0" -> "3-3" [label="256MB"]
+	"2-3" -> "3-3" [label="32MB"]
+	"2-2" -> "3-2" [label="64MB"]
+	"2-1" -> "3-2" [label="128MB"]
+	"2-3" -> "3-2" [label="32MB"]
+	"1-3" -> "2-0" [label="32MB"]
+	"1-0" -> "2-0" [label="256MB"]
+	"1-1" -> "2-0" [label="128MB"]
+	"1-0" -> "2-1" [label="256MB"]
+	"1-1" -> "2-1" [label="128MB"]
+	"1-2" -> "2-1" [label="64MB"]
+	"1-3" -> "2-3" [label="32MB"]
+	"1-0" -> "2-3" [label="256MB"]
+	"1-2" -> "2-3" [label="64MB"]
+	"1-3" -> "2-2" [label="32MB"]
+	"1-1" -> "2-2" [label="128MB"]
+	"1-2" -> "2-2" [label="64MB"]
+	"0-0" -> "1-0" [label="256MB"]
+	"0-1" -> "1-0" [label="128MB"]
+	"0-3" -> "1-0" [label="32MB"]
+	"0-0" -> "1-1" [label="256MB"]
+	"0-1" -> "1-1" [label="128MB"]
+	"0-2" -> "1-1" [label="64MB"]
+	"0-0" -> "1-3" [label="256MB"]
+	"0-2" -> "1-3" [label="64MB"]
+	"0-3" -> "1-3" [label="32MB"]
+	"0-1" -> "1-2" [label="128MB"]
+	"0-2" -> "1-2" [label="64MB"]
+	"0-3" -> "1-2" [label="32MB"]
+}

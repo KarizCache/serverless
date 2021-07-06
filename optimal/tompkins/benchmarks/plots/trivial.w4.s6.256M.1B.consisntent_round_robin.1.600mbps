@@ -1,0 +1,16 @@
+digraph G {
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	join
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-2"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-3"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-1"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-0"
+	"5-2" -> join [label="64MB"]
+	"5-3" -> join [label="32MB"]
+	"5-1" -> join [label="128MB"]
+	"5-0" -> join [label="256MB"]
+}
