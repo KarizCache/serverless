@@ -220,8 +220,8 @@ benchmarks = get_benchmarks()
 #benchmarks = ['nearest4x61GB1B']
 #benchmarks = ['dom4x61GB1B', 'dom2x41GB1B', 'tree4x61GB1B']
 for bnch in sorted(benchmarks, reverse=True):
-    #if 'all_to_all' in bnch or 'nearest' in bnch or 'stencil_1d' in bnch or 'fft' in bnch: continue
-    if 'stencil_1d' not in bnch: continue
+    if not ('all_to_all' in bnch or 'nearest' in bnch or 'fft' in bnch or 'stencil_1d_periodic' in bnch): continue
+    #if 'stencil_1d' not in bnch: continue
     for bw in [600, 32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 512, 256, 128, 64, 32]:
         print(f'process {bnch}')
         g = build_graph(bnch)
@@ -237,6 +237,6 @@ for bnch in sorted(benchmarks, reverse=True):
                     fd.write(f'v,{s[0]},{s[1]},{s[2]}\n')
                 #v = int(s[0].replace('t', ''))
                 #g.vp.worker[v] = s[2] 
-        break
+        #break
     #break
 
