@@ -1,0 +1,46 @@
+digraph G {
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	0
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	1
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	2
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	3
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	4
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	5
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	6
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	7
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	8
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	9
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	10
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	11
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	12
+	1 -> 0
+	3 -> 1
+	2 -> 1
+	4 -> 2
+	5 -> 2
+	6 -> 3
+	5 -> 3
+	8 -> 4
+	7 -> 4
+	8 -> 5
+	9 -> 5
+	9 -> 6
+	10 -> 7
+	11 -> 8
+	10 -> 8
+	11 -> 9
+	12 -> 10
+	12 -> 11
+}

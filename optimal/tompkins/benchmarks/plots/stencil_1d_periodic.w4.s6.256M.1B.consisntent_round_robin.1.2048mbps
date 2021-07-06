@@ -1,0 +1,116 @@
+digraph G {
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	0
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	1
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	2
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	3
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	4
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	5
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	6
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	7
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	8
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	9
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	10
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	11
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	12
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	13
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	14
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	15
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	16
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	17
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	18
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	19
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	20
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	21
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	22
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	23
+	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	24
+	2 -> 0
+	3 -> 0
+	1 -> 0
+	4 -> 0
+	5 -> 1
+	7 -> 1
+	6 -> 1
+	5 -> 2
+	8 -> 2
+	6 -> 2
+	7 -> 3
+	8 -> 3
+	6 -> 3
+	7 -> 4
+	5 -> 4
+	8 -> 4
+	10 -> 5
+	11 -> 5
+	9 -> 5
+	12 -> 6
+	10 -> 6
+	9 -> 6
+	12 -> 7
+	11 -> 7
+	9 -> 7
+	12 -> 8
+	10 -> 8
+	11 -> 8
+	14 -> 9
+	13 -> 9
+	15 -> 9
+	16 -> 10
+	14 -> 10
+	13 -> 10
+	16 -> 11
+	13 -> 11
+	15 -> 11
+	16 -> 12
+	14 -> 12
+	15 -> 12
+	19 -> 13
+	17 -> 13
+	18 -> 13
+	17 -> 14
+	18 -> 14
+	20 -> 14
+	19 -> 15
+	17 -> 15
+	20 -> 15
+	19 -> 16
+	18 -> 16
+	20 -> 16
+	21 -> 17
+	22 -> 17
+	23 -> 17
+	21 -> 18
+	22 -> 18
+	24 -> 18
+	21 -> 19
+	24 -> 19
+	23 -> 19
+	22 -> 20
+	24 -> 20
+	23 -> 20
+}
