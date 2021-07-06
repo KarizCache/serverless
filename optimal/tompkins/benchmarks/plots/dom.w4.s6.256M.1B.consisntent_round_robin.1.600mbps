@@ -1,29 +1,29 @@
 digraph G {
-	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	join
-	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	"5-3"
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	join
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"5-3"
+	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"4-2"
-	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"4-3"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"3-1"
-	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	"3-2"
-	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	"3-3"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-2"
+	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"3-3"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"2-0"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"2-1"
-	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
-	"2-2"
 	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	"2-2"
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"1-0"
 	node [color="#a65628" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"1-1"
-	node [color="#e7298a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"0-0"
 	"5-3" -> join [label="32MB"]
 	"4-3" -> "5-3" [label="32MB"]
