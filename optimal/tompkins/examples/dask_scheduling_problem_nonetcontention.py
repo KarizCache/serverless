@@ -210,7 +210,7 @@ stats_dir='./benchmarks'
 benchmarks = get_benchmarks()
 #benchmarks = ['dom4x61GB1B', 'dom2x41GB1B', 'tree4x61GB1B']
 for bnch in benchmarks:
-    for bw in [600, 512, 32*1024, 16*1024, 8*1024, 4*1024, 2*1024, 1024, 256, 128, 64, 32]:
+    for bw in [16*1024, 512, 32*1024, 8*1024, 4*1024, 2*1024, 1024, 256, 128, 64, 32]:
         print(f'process {bnch}')
         g = build_graph(bnch)
         sched2, stats = find_optimal(g, bw)
