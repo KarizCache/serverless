@@ -9,8 +9,8 @@ digraph G {
 	3
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	4
-	1 -> 0
-	2 -> 0
-	3 -> 0
-	4 -> 0
+	1 -> 0 [label="64MB"]
+	2 -> 0 [label="32MB"]
+	3 -> 0 [label="128MB"]
+	4 -> 0 [label="256MB"]
 }

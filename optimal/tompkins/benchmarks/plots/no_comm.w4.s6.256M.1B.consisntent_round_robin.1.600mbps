@@ -49,28 +49,28 @@ digraph G {
 	23
 	node [color="#4daf4a" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	24
-	2 -> 0
-	3 -> 0
-	4 -> 0
-	1 -> 0
-	5 -> 1
-	6 -> 2
-	7 -> 3
-	8 -> 4
-	9 -> 5
-	10 -> 6
-	11 -> 7
-	12 -> 8
-	13 -> 9
-	14 -> 10
-	15 -> 11
-	16 -> 12
-	17 -> 13
-	18 -> 14
-	19 -> 15
-	20 -> 16
-	21 -> 17
-	22 -> 18
-	23 -> 19
-	24 -> 20
+	2 -> 0 [label="128MB"]
+	3 -> 0 [label="64MB"]
+	4 -> 0 [label="32MB"]
+	1 -> 0 [label="256MB"]
+	5 -> 1 [label="256MB"]
+	6 -> 2 [label="128MB"]
+	7 -> 3 [label="64MB"]
+	8 -> 4 [label="32MB"]
+	9 -> 5 [label="256MB"]
+	10 -> 6 [label="128MB"]
+	11 -> 7 [label="64MB"]
+	12 -> 8 [label="32MB"]
+	13 -> 9 [label="256MB"]
+	14 -> 10 [label="128MB"]
+	15 -> 11 [label="64MB"]
+	16 -> 12 [label="32MB"]
+	17 -> 13 [label="256MB"]
+	18 -> 14 [label="128MB"]
+	19 -> 15 [label="64MB"]
+	20 -> 16 [label="32MB"]
+	21 -> 17 [label="256MB"]
+	22 -> 18 [label="128MB"]
+	23 -> 19 [label="64MB"]
+	24 -> 20 [label="32MB"]
 }

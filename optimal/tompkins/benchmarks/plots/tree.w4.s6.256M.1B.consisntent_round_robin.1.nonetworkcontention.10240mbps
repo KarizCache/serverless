@@ -21,17 +21,17 @@ digraph G {
 	9
 	node [color="#ff7f00" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	10
-	3 -> 0
-	2 -> 0
-	1 -> 0
-	4 -> 0
-	5 -> 1
-	5 -> 2
-	6 -> 3
-	6 -> 4
-	7 -> 5
-	7 -> 6
-	8 -> 7
-	9 -> 8
-	10 -> 9
+	3 -> 0 [label="64MB"]
+	2 -> 0 [label="128MB"]
+	1 -> 0 [label="256MB"]
+	4 -> 0 [label="32MB"]
+	5 -> 1 [label="256MB"]
+	5 -> 2 [label="256MB"]
+	6 -> 3 [label="128MB"]
+	6 -> 4 [label="128MB"]
+	7 -> 5 [label="256MB"]
+	7 -> 6 [label="256MB"]
+	8 -> 7 [label="256MB"]
+	9 -> 8 [label="256MB"]
+	10 -> 9 [label="256MB"]
 }
