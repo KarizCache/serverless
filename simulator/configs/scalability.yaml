@@ -1,0 +1,14 @@
+benchmark:
+  logdir: /local0/serverless/serverless/simulator/results
+  statistics: /local0/serverless/serverless/simulator/results/statistics.csv
+  workloaddir: /local0/serverless/serverless/benchmark/stats
+  workloads:
+     - tpch1.consistent_round_robin.1 
+cluster:
+   configs: /local0/serverless/serverless/simulator/configs/config.4n1c.yaml
+   policy:
+      serialization:
+        - syncwdeser 
+      scheduling:
+        - chain_color_ch
+        - chain_color_rr

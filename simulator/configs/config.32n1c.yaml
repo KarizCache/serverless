@@ -1,0 +1,382 @@
+benchmark:
+  logdir: /local0/serverless/serverless/simulator/results
+  statistics: /local0/serverless/serverless/simulator/results/statistics.csv
+  workloaddir: /local0/serverless/serverless/benchmark/stats
+  workloads:
+  -  tpch1.consistent_round_robin.1
+cluster:
+  prefetch: 0
+  scheduling: chain_color_rr
+  serialization: syncwdeser
+topology:
+  r1:
+    gateway: r3
+    ip: 10.255.23.1
+    name: r1
+    ports: 64
+    rate: 10737418240
+    type: router
+  r2:
+    gateway: r3
+    ip: 10.255.24.1
+    name: r2
+    ports: 64
+    rate: 10737418240
+    type: router
+  r3:
+    gateway: None
+    ip: 10.255.22.1
+    name: r3
+    ports: 64
+    rate: 10737418240
+    type: router
+  s1:
+    gateway: r3
+    ip: 10.255.22.2
+    metadata: /local0/wlmod/simulator/karizsim/inputs.csv
+    name: s1
+    port: 9000
+    rate: 10737418240
+    storage_rate: 104857600
+    type: storage
+  w1:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.101
+    memory: 322000000
+    name: w1
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w2:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.102
+    memory: 322000000
+    name: w2
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w3:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.103
+    memory: 322000000
+    name: w3
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w4:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.104
+    memory: 322000000
+    name: w4
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w5:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.105
+    memory: 322000000
+    name: w5
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w6:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.106
+    memory: 322000000
+    name: w6
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w7:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.107
+    memory: 322000000
+    name: w7
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w8:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.108
+    memory: 322000000
+    name: w8
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w9:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.109
+    memory: 322000000
+    name: w9
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w10:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.110
+    memory: 322000000
+    name: w10
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w11:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.111
+    memory: 322000000
+    name: w11
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w12:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.112
+    memory: 322000000
+    name: w12
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w13:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.113
+    memory: 322000000
+    name: w13
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w14:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.114
+    memory: 322000000
+    name: w14
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w15:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.115
+    memory: 322000000
+    name: w15
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w16:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.116
+    memory: 322000000
+    name: w16
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w17:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.117
+    memory: 322000000
+    name: w17
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w18:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.118
+    memory: 322000000
+    name: w18
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w19:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.119
+    memory: 322000000
+    name: w19
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w20:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.120
+    memory: 322000000
+    name: w20
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w21:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.121
+    memory: 322000000
+    name: w21
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w22:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.122
+    memory: 322000000
+    name: w22
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w23:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.123
+    memory: 322000000
+    name: w23
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w24:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.124
+    memory: 322000000
+    name: w24
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w25:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.125
+    memory: 322000000
+    name: w25
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w26:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.126
+    memory: 322000000
+    name: w26
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w27:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.127
+    memory: 322000000
+    name: w27
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w28:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.128
+    memory: 322000000
+    name: w28
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w29:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.129
+    memory: 322000000
+    name: w29
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w30:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.130
+    memory: 322000000
+    name: w30
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker
+  w31:
+    cache.policy: FIFO
+    cache.port: 9001
+    executors: 1
+    gateway: r1
+    ip: 10.255.23.131
+    memory: 322000000
+    name: w31
+    rate: 10737418240
+    storage: 10.255.22.2:9000
+    type: worker

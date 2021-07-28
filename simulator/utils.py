@@ -11,7 +11,7 @@ def power_law(x, a, b):
 
 
 def fit_deserialization():
-    df = pd.read_csv('/local0/serverless/serverless-sim/benchmark/stats/serialization.log', 
+    df = pd.read_csv('./serialization.log', 
                  names=['dims', 'size', 'serialization', 'deserialization', 'repeat'])
     pars, cov = curve_fit(f=power_law, xdata=df['size'].values, ydata=df['deserialization'].values, p0=[0, 0], bounds=(-np.inf, np.inf))
     def pw(x):
@@ -23,7 +23,7 @@ def fit_deserialization():
 
 
 def fit_serialization():
-    df = pd.read_csv('/local0/serverless/serverless-sim/benchmark/stats/serialization.log', 
+    df = pd.read_csv('./serialization.log', 
                  names=['dims', 'size', 'serialization', 'deserialization', 'repeat'])
     pars, cov = curve_fit(f=power_law, xdata=df['size'].values, ydata=df['serialization'].values, p0=[0, 0], bounds=(-np.inf, np.inf))
     def pw(x):

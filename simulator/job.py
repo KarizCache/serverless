@@ -6,6 +6,8 @@ import graph_tool.all as gt
 import ast
 import json
 import re
+import sys
+
 
 class Task:
     class Stats:
@@ -36,6 +38,8 @@ class Task:
         self.status = 'waiting' 
         self.stats = self.Stats()
 
+
+
     def __str__(self):
         return f'{self.name}'
 
@@ -52,7 +56,6 @@ class Task:
         self.nbytes = size
         self.obj = Object(self.name, size)
 
-
     def set_exec_time(self, time, start=0, stop=0):
         self.exec_time = int(time)
 
@@ -65,7 +68,6 @@ class Task:
 
     def set_name(self, name):
         self.name = name
-        self.obj.name = self.name
 
 
     def set_id(self, id):
@@ -92,12 +94,44 @@ class Job:
     def __str__(self):
         return f'{self.name}'
 
+
     def build_job_from_file(self, gfile, histfile, name):
+        self.name_to_task = {}
+        self.name = name 
+        print(name, gfile, histfile)
+        with open(histfile, 'r') as fd:
+            taskstat = json.load(fd)
+            for _ts in taskstat:
+                _tname = _ts['key']
+                ts = Task(self.env, job = self)
+                ts.set_name(_tname)
+                for dd in _ts['drilldown']:
+                    if dd['name'] != '<Functions Host Timing>': continue
+                    output_size = dd['custom_info']['nbytes']
+                    ts.set_output_size(output_size)
+
+                for edd in dd['drilldown']:
+                    if edd['name'] == '<Azure Functions Host Invocation>':
+                        execution_time = edd['duration']
+                        ts.set_exec_time(execution_time)
+                self.completion_events.append(ts.completion_event)
+                self.name_to_task[_tname] = ts
+       
+        
+        with open(gfile, 'r') as fd:
+        
+        return self
+
+
+
+    def build_job_from_file2(self, gfile, histfile, name):
         self.name_to_task = {}
         self.name = name #re.search(r'stats/(.*?)\.json', histfile).group(1)
         with open(histfile, 'r') as fd:
+            #print(json.dumps(taskstat, indent=4))
             taskstat = ast.literal_eval(fd.read())
             for name in taskstat:
+                #print(name)
                 ts = Task(self.env, job = self)
                 self.completion_events.append(ts.completion_event)
                 self.name_to_task[name] = ts
