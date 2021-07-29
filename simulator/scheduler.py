@@ -169,7 +169,7 @@ class Scheduler(object):
         
         plt.rc('font', family='serif')
         
-        fig, ax = plt.subplots(figsize=(8,5))
+        fig, ax = plt.subplots(figsize=(20,8))
         ax.set_xlabel('Time (msec)')
         
         sns.despine()
@@ -200,6 +200,7 @@ class Scheduler(object):
                 vname = ast.literal_eval(vname)[0]
             except ValueError:
                 vname = vname
+            vname = vname.rsplit('-', 1)[0]
             ax.text(x=ts['start_ts'] + ts['fetch_time'] + (ts['computation_time'])/2,
                     y=base + size/2,
                     #s=f'{vname[1]}, {ts["nbytes"]>>20}MB' if len(vname) > 1 else vname[0],
