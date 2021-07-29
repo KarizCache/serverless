@@ -62,6 +62,7 @@ class Task:
 
     def set_exec_time(self, time, start=0, stop=0):
         self.exec_time = time
+        print(self.name, '------->', self.exec_time)
 
     def add_input(self, obj):
         self.inputs.append(obj)

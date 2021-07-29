@@ -83,7 +83,6 @@ class CPU(object):
                 #ts_next = self.update_task_time()
                 self.update_task_time()
             except simpy.Interrupt as i:
-                print('Bat. ctrl. interrupted at', self.env.now, 'msg:', i.cause, 'finish time is', ts.stats.estimated_finish_time)
                 self.proc_queue.put(ts)
 
 
