@@ -8,7 +8,7 @@ cluster:
   prefetch: 0
   scheduling: chain_color_rr #hcolor_rr
   serialization: syncwdeser
-  active_workers: 4 # 4 
+  active_workers: 3 # 4 
 topology:
   r1:
     gateway: r3
