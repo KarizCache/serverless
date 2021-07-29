@@ -11,6 +11,7 @@ import datetime
 import timeit
 import json
 import os
+import math
 
 from graphviz import Digraph
 import matplotlib.colors as mcolors
@@ -22,7 +23,7 @@ sns.set_style("whitegrid")
 import pandas as pd
 import matplotlib
 import matplotlib.ticker as ticker
-
+from random import randint
 
 
 class Scheduler(object):
@@ -33,7 +34,7 @@ class Scheduler(object):
         self.cluster = cluster
         env.process(self.schedule_job())
         env.process(self.schedule_task())
-        self.workers_it = itertools.cycle(cluster.get_workers())
+        self.workers_it = itertools.cycle(list(cluster.get_workers())[:cluster.active_workers])
         self.hash_ring = HashRing(nodes=list(cluster.get_workers()))
         self.color2worker_map = {}
         self.event_to_task = {}
@@ -52,6 +53,12 @@ class Scheduler(object):
                 'task_time': 0, 'ser_time': 0, 'deser_time': 0, 
                 'remote_read': 0, 'local_read': 0, 
                 'cpu_time': 0, 'transmit_time': 0}
+        
+        self.wcolors = []
+        n_workers = len(list(cluster.get_workers()))
+        for i in range(n_workers):
+            self.wcolors.append('#%06X' % randint(0, 0xFFFFFF))
+        self.worker_colors = {}
 
 
     def put(self, job):
@@ -128,20 +135,18 @@ class Scheduler(object):
 
 
     def plot_graph(self, job):
-        worker_color = {'10.255.23.108': '#e41a1c',
-                '10.255.23.109': '#984ea3',
-                '10.255.23.110': '#ff7f00',
-                '10.255.23.115': '#4daf4a'}
-        css_colors = list(mcolors.CSS4_COLORS.keys())
-
         dg = Digraph('G', filename=f'{job.name}.{self.policy}.gv', format='png')
         for v in job.g.vertices():
             #print(job.g.vp.tasks[v].color)
             #dg.attr('node', shape='ellipse', style='filled', color=job.g.vp.tasks[v].color)
+            worker = job.g.vp.tasks[v].worker
+            if worker not in self.worker_colors:
+                self.worker_colors[worker] = self.wcolors.pop()
+
             dg.attr('node', shape='ellipse', style="filled,solid",
                     penwidth="3",
-                    fillcolor=mcolors.CSS4_COLORS[css_colors[int(job.g.vp.tasks[v].color)]] if 'chain_color' in self.policy else '#f0f0f0' ,
-                    color=worker_color[job.g.vp.tasks[v].worker])
+                    fillcolor= '#f0f0f0', #mcolors.CSS4_COLORS[css_colors[int(job.g.vp.tasks[v].color)]] if 'chain_color' in self.policy else '#f0f0f0' ,
+                    color= self.worker_colors[worker])
 
             color = '-'
             if 'chain_color' in self.policy:
@@ -149,7 +154,6 @@ class Scheduler(object):
             dg.node(f'{v}, color({color})')
         for e in job.g.edges():
             dg.edge(f'{e.source()}, color({job.g.vp.tasks[e.source()].color if "chain_color" in self.policy else "-"})',
-            
                     f'{e.target()}, color({job.g.vp.tasks[e.target()].color if "chain_color" in self.policy else "-"})')
         dg.view(f'{os.path.join(self.logdir,job.name)}.{self.policy}', quiet=False)
 
@@ -180,33 +184,25 @@ class Scheduler(object):
         # Setting graph attribute
         ax.grid(True)
         
-        worker_color = {'10.255.23.108': '#e41a1c',
-                        '10.255.23.109': '#984ea3',
-                        '10.255.23.110': '#ff7f00',
-                        '10.255.23.115': '#4daf4a'}
-        
         yticks = []
         workers_load={}
         base = 0; size = 5; margin = 1
         for ts in self.stats['tasks']:
             #print(ts['name'], ts['start_ts'], ts['end_ts'], ts['worker'])
             ax.broken_barh([(ts['start_ts'], ts['fetch_time'])], (base, size),
-                           edgecolors =worker_color[ts['worker']], facecolors =(worker_color[ts['worker']]))
+                           edgecolors =self.worker_colors[ts['worker']], facecolors =(self.worker_colors[ts['worker']]))
             ax.broken_barh([(ts['start_ts'] + ts['fetch_time'], ts['computation_time'])], (base, size),
-                           edgecolors =worker_color[ts['worker']], facecolors='#f0f0f0')
+                           edgecolors =self.worker_colors[ts['worker']], facecolors='#f0f0f0')
             base += (size + margin)
         ax.set_yticklabels(yticks)
         ax.set_title(f'{job.name}\n{self.policy}', fontsize=18)
-        ax.legend(['10.255.23.108', '10.255.23.109', '10.255.23.109', '10.255.23.115'], loc=8)
-        ax.get_legend().legendHandles[0].set_color(worker_color['10.255.23.108'])
-        ax.get_legend().legendHandles[1].set_color(worker_color['10.255.23.109'])
-        ax.get_legend().legendHandles[2].set_color(worker_color['10.255.23.110'])
-        ax.get_legend().legendHandles[3].set_color(worker_color['10.255.23.115'])
+        #ax.legend(['10.255.23.108', '10.255.23.109', '10.255.23.109', '10.255.23.115'], loc=8)
+        #ax.get_legend().legendHandles[0].set_color(worker_color['10.255.23.108'])
+        #ax.get_legend().legendHandles[1].set_color(worker_color['10.255.23.109'])
+        #ax.get_legend().legendHandles[2].set_color(worker_color['10.255.23.110'])
+        #ax.get_legend().legendHandles[3].set_color(worker_color['10.255.23.115'])
         fig.savefig(f'{os.path.join(self.logdir,job.name)}.gannt.{self.policy}.png', format='png', dpi=200)
         plt.show()
-
-
-
 
 
 
@@ -233,14 +229,21 @@ class Scheduler(object):
             return task.optimal_placement;
         if self.policy == 'vanilla':
             return task.vanilla_placement;
-        if self.policy == 'manias':
-            pass
+        if self.policy == 'hcolor_rr':
+            assert(task)
+            # take log of # of workers and take int + 1
+            rshifts = task.hcolor_bits - math.floor(math.log2(self.cluster.active_workers))
+            tcolor = task.color >> rshifts;
+            if tcolor not in self.color2worker_map:
+                self.color2worker_map[tcolor] = next(self.workers_it)
+            print(f'\t\t\t{Fore.YELLOW}{task.name}: color: {task.color >> rshifts}({format(task.color, "#011b")}), workers: actives:{self.cluster.active_workers}, worker: {self.color2worker_map[tcolor]} {Style.RESET_ALL}')
+            return  self.color2worker_map[tcolor]
         raise NameError('The scheduler is not supported')
 
 
 
     def submit_task(self, task):
-        w = self.decide_worker() if not (self.policy in ['consistent_hash' , 'chain_color_ch', 'chain_color_rr', 'optimal', 'vanilla']) else self.decide_worker(task)
+        w = self.decide_worker() if not (self.policy in ['hcolor_rr', 'consistent_hash' , 'chain_color_ch', 'chain_color_rr', 'optimal', 'vanilla']) else self.decide_worker(task)
         if task.name != 'NOP': 
             task.obj.who_has = w # set the current worker as the owner of this task. 
             self.event_to_task[task.completion_event] = task

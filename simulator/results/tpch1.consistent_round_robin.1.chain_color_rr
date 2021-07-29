@@ -1,159 +1,159 @@
 digraph G {
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"0, color(0)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"1, color(0)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"2, color(0)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"3, color(256)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"4, color(128)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"5, color(0)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"6, color(320)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"7, color(288)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"8, color(272)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"9, color(264)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"10, color(260)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"11, color(258)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"12, color(257)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"13, color(256)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"14, color(192)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"15, color(160)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"16, color(144)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"17, color(136)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"18, color(132)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"19, color(130)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"20, color(129)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"21, color(128)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"22, color(64)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"23, color(32)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"24, color(16)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"25, color(8)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"26, color(4)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"27, color(2)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"28, color(1)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"29, color(0)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"30, color(320)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"31, color(288)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"32, color(272)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"33, color(264)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"34, color(260)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"35, color(258)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"36, color(257)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"37, color(256)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"38, color(192)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"39, color(160)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"40, color(144)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"41, color(136)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"42, color(132)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"43, color(130)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"44, color(129)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"45, color(128)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"46, color(64)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"47, color(32)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"48, color(16)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"49, color(8)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"50, color(4)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"51, color(2)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"52, color(1)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"53, color(0)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"54, color(320)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"55, color(288)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"56, color(272)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"57, color(264)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"58, color(260)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"59, color(258)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"60, color(257)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"61, color(256)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"62, color(192)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"63, color(160)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"64, color(144)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"65, color(136)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"66, color(132)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"67, color(130)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"68, color(129)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"69, color(128)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"70, color(64)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"71, color(32)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"72, color(16)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"73, color(8)"
-	node [color="#3DB663" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6E1EA1" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"74, color(4)"
-	node [color="#44D431" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3B1BF9" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"75, color(2)"
-	node [color="#F12060" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#6D60E7" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"76, color(1)"
-	node [color="#D44287" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
+	node [color="#3DB423" fillcolor="#f0f0f0" penwidth=3 shape=ellipse style="filled,solid"]
 	"77, color(0)"
 	"1, color(0)" -> "0, color(0)"
 	"2, color(0)" -> "1, color(0)"

@@ -4,7 +4,6 @@
 from job import Job
 from netsim import Router, Request, NetworkInterface
 import utils 
-import yaml
 import json
 import simpy
 import itertools
@@ -337,6 +336,7 @@ class Worker:
 class Cluster:
     def __init__(self, env, topology):
         self.env = env
+        self.active_workers = 0
         self.workers = {}
         self.routers = {}
         self.storages = {}
@@ -345,6 +345,7 @@ class Cluster:
 
     def deploy_cluster(self, env, configs):
         try:
+            active_workers = configs['cluster']['active_workers']
             serialization = configs['cluster']['serialization']
             topology = configs['topology']
             ''' Add nodes '''
@@ -357,6 +358,7 @@ class Cluster:
                             memsize=node['memory'], gateway=node['gateway'], serialization=serialization, 
                             storage_host=node['storage'], cache_policy=node['cache.policy'], cache_port=node['cache.port'])
                     self.workers[name] = worker
+                    self.active_workers = active_workers
                 elif node['type'] == 'router':
                     router = Router(env=env, name=name, ip=node['ip'], ports=node['ports'], rate=node['rate'], gateway=node['gateway'], debug=False)
                     self.routers[name] = router

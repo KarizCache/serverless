@@ -7,6 +7,9 @@ import ast
 import json
 import re
 import sys
+import numpy as np
+import copy
+from colorama import Fore, Style
 
 
 class Task:
@@ -32,6 +35,7 @@ class Task:
         self.completion_event = env.event()
         self.job = job
         self.color = None
+        self.hcolor_bits = 0;
         self.child_color = None
         self.worker = None
         self.optimal_placement=None
@@ -57,7 +61,7 @@ class Task:
         self.obj = Object(self.name, size)
 
     def set_exec_time(self, time, start=0, stop=0):
-        self.exec_time = int(time)
+        self.exec_time = time
 
     def add_input(self, obj):
         self.inputs.append(obj)
@@ -95,6 +99,46 @@ class Job:
         return f'{self.name}'
 
 
+    def build_dag_from_file(self, dagf):
+        with open(dagf, 'r') as fd:
+            g = gt.Graph(directed=True)
+            g.vp.tasks = g.new_vertex_property('python::object')
+            g.vp.vid = g.new_vertex_property('string')
+            g.vp.color = g.new_vertex_property('int', -1)
+            g.vp.tmp_color = g.new_vertex_property('int', -1)
+            g.vp.cset = g.new_vertex_property('object')
+            vid2v = {}
+            self.vname_to_vtx = {}
+            
+            lines = fd.read().split('\n')[:-1]
+            for ln in lines:
+                if ln.startswith('v'):
+                    _, vid, vname = ln.split(',', 2)
+
+                    ts = self.name_to_task[vname]
+                    ts.set_id(vid)
+                    
+                    v = g.add_vertex()
+                    g.vp.tasks[v] = ts
+
+                    g.vp.vid[v] = vid
+                    g.vp.color[v] = -1
+                    g.vp.tmp_color[v] = -1
+                    g.vp.cset[v] = []
+
+                    #print(vname, ts.exec_time)
+
+                    self.vname_to_vtx[vname] = v
+                    vid2v[vid] = v
+            for ln in lines:
+                if ln.startswith('e'):
+                    _, src, dst, *args = ln.split(',')
+                    g.add_edge(vid2v[src], vid2v[dst])
+                    g.vp.tasks[vid2v[dst]].add_input(g.vp.tasks[vid2v[src]].get_output())
+            self.vid_to_vtx = vid2v
+            return g
+
+
     def build_job_from_file(self, gfile, histfile, name):
         self.name_to_task = {}
         self.name = name 
@@ -116,11 +160,97 @@ class Job:
                         ts.set_exec_time(execution_time)
                 self.completion_events.append(ts.completion_event)
                 self.name_to_task[_tname] = ts
-       
-        
-        with open(gfile, 'r') as fd:
-        
+        g = self.build_dag_from_file(gfile)
+        self.generate_chain_color(g)
+        #self.generate_graph_chains(g)
+        self.g = g
         return self
+
+    def assign_heirarchy(self, n_chains, g):
+        def DFS(v, visited, H):
+            assert (not v in visited)
+            visited[v] = 1
+            for vo in v.out_neighbors():
+                if g.vp.color[v] != g.vp.color[vo]:
+                    H[g.vp.color[v], g.vp.color[vo]] += 1
+                    H[g.vp.color[vo], g.vp.color[v]] += 1
+                if not vo in visited:
+                    H = DFS(vo, visited, H)
+            return H
+    
+        visited = {}
+        H = np.zeros((n_chains, n_chains))
+        start_tasks = []
+        for v in g.vertices():
+            if not v.in_degree():
+                start_tasks.append(v)
+        for v in start_tasks:
+            H = DFS(v, visited, H)
+        return H
+    
+    
+    def checkpoint_colors(self, g):
+        for v in g.vertices():
+            g.vp.cset[v].append(g.vp.color[v])
+    
+    
+    def recolor_graph(self, g, merged):
+        self.checkpoint_colors(g)
+        for v in g.vertices():
+            g.vp.color[v] = merged[g.vp.color[v]]
+
+
+    def merge_chains(self, n_chains, H):
+        merged = {}
+        for ch in range(0, n_chains):
+            if ch in merged: continue
+            merged[ch] = ch
+            options = np.where(H[ch, :] > 0)[0]
+            if len(options):
+                min_chain = sys.maxsize
+                for opt in options:
+                    #print(H[opt, :], H[opt, :].sum())
+                    if H[opt, :].sum() < min_chain:
+                        min_chain = H[opt, :].sum()
+                        m_color = opt
+    
+                #m_color = np.random.choice(options)
+                #print(f'chose {m_color} to merge with {ch}')
+                merged[m_color] = ch
+                H[:, m_color] = 0; H[m_color, :] = 0;
+                H[:, ch] = 0; H[ch, :] = 0;
+        return merged
+    
+    def finalize(self, g):
+        def reverseBits(n) :
+            rev = 0
+            while (n > 0) :
+                rev = rev << 1
+                if (n & 1 == 1) :
+                    rev = rev ^ 1
+                n = n >> 1
+            return rev
+        
+        n_steps = len(g.vp.cset[0])
+        fc = {}
+        for s in range(n_steps - 1, -1, -1):
+            fc_old = copy.deepcopy(fc)
+            for v in g.vertices():
+                c = g.vp.cset[v][s]
+                if s == n_steps - 1:
+                    fc[c] = 0
+                else:
+                    c_old = g.vp.cset[v][s+1]
+                    fc[c] = fc_old[c_old] << 1;
+                    if c != c_old:
+                        fc[c] += 1
+        for v in g.vertices():
+            c = g.vp.tmp_color[v]
+            g.vp.color[v] = fc[c]
+            g.vp.tasks[v].color = fc[c]
+            #print(f'{Fore.CYAN} {g.vp.tasks[v].name} --> {g.vp.tasks[v].color} --> {format(g.vp.tasks[v].color, "#011b")} <------> {format(fc[c], "#011b")} {Style.RESET_ALL}')
+            g.vp.tasks[v].hcolor_bits = n_steps
+        pass
 
 
 
@@ -235,22 +365,24 @@ class Job:
         #    to_be_sent.append(pt)
         return to_be_sent
 
-    # RF-MSR B
+
     def generate_graph_chains(self, g):
         """
         Generate a chain decomposition of the graph. This algorithm is not optimal,
-        but is quicker than the optimal O(v+e). It is by Simon, "An Improved Algorithm for Transitive 
+        but is quicker than the optimal O(v+e). It is by Simon, "An Improved Algorithm for Transitive
         Closure on Acyclic Graphs", TCS v58, i 1-3, 1988.
         This is called by update_graph.
         The result is stored in the TaskState of each task in the graph, in the 'color' and 'child_color'
         attributes, and is sent to the worker for possible use in scheduling / data placement.
         """
-        def DFS( current_ts, open_time, close_time, current_time, sorted_nodes=None):
+        def DFS( v, open_time, close_time, current_time, sorted_nodes=None):
             """
             Do a topological sort of the graph, following the 'dependents' links
             Note that if the graph has multiple "starting points", nodes with no dependencies,
             this will not traverse the entire graph. This is why we call DFS multiple times
             below, from different starting_tasks.
+            Note: we return current_time because otherwise the updates inside the recursive
+                  call are kept only in the local copy (as Python passes ints by value)
 
             Arguments:
             current_ts -- a task structure
@@ -260,20 +392,20 @@ class Job:
             current_time -- current step of the algorithm
             sorted_nodes -- nodes in topological order
             """
-            assert(not g.vp.tasks[current_ts].name in open_time)
-            open_time[g.vp.tasks[current_ts].name] = current_time
+            assert(not v in open_time)
+            open_time[v] = current_time
             current_time += 1
-            for t in current_ts.out_neighbors():
-                #print(f'{g.vp.tasks[current_ts].name} -> {g.vp.tasks[t].name}')
-                if (not g.vp.tasks[t].name in close_time):
-                    assert(not g.vp.tasks[t].name in open_time) #cycle!
-                    current_time = DFS(t, open_time, close_time, current_time, sorted_nodes)
+            for vo in v.out_neighbors():
+                #print("\"%s\" -> \"%s\"", v, vo)
+                if (not vo in close_time):
+                    assert(not vo in open_time) #cycle!
+                    current_time = DFS(vo, open_time, close_time, current_time, sorted_nodes)
                 else: #don't visit, node is closed (visited)
-                    assert(g.vp.tasks[t].name in open_time) #error (closed but never open!)
-            close_time[g.vp.tasks[current_ts].name] = current_time
+                    assert(vo in open_time) #error (closed but never open!)
+            close_time[v] = current_time
             current_time += 1
             if (not sorted_nodes == None):
-                sorted_nodes.appendleft(current_ts)
+                sorted_nodes.appendleft(v)
             return current_time
 
         # First, do a topological sort of the graph, starting at all of the nodes with no
@@ -284,31 +416,39 @@ class Job:
         current_time = 0
 
         starting_tasks = []
+
+        # if the current task has no color
+        # this task has 0 parents with no color
+        # Mania: # I think this algorithm was originally works with O(V + E)
+        # and after this modification in worst case it runs with O(V^2) I should double check this claim.
         for v in g.vertices():
-            if v.in_degree() == 0:
+            if not v.in_degree():
                 starting_tasks.append(v)
 
+        #print(f'{Fore.GREEN} starting tasks are: {starting_tasks}{Style.RESET_ALL}')
+        for vs in starting_tasks:
+            current_time = DFS(vs, open_time, close_time, current_time, sorted_nodes)
 
-        for starting_ts in starting_tasks:
-            current_time = DFS(starting_ts, open_time, close_time, current_time, sorted_nodes)
+
+        # Check: assert that the close_times of sorted_nodes is sorted and has no duplicates
+        #cts = [n.close_time for n in sorted_nodes]
+        #assert(cts == sorted(cts))
+        #assert(len(cts) == len(set(cts)))
 
         #Now we do the chain partitioning. Will store the results in the task itself,
         #in the color field.
         # TODO: For now, assuming the nodes haven't been colored. It's possible that they
-        # would have been, in which case it would be good to extend the chains    
+        # would have been, in which case it would be good to extend the chains
 
-        cfd = open(f'/local0/serverless/serverless-sim/results/{self.name}.simcolors', 'w')
-        print("Chain Coloring...")
-        c = 1
+        c = 0
         # The topo order makes us start as far back as possible, and color all nodes
         for v in sorted_nodes:
-            ts = g.vp.tasks[v]
-            if ts.color is not None:
+            if g.vp.color[v] != -1:
                 continue
-            cur_v = v
-            current_ts = ts
-            current_ts.color = str(c)
-            current_ts.child_color = str(c)
+
+            current_ts = v
+            g.vp.color[v] = c
+            #current_ts.child_color = str(c)
             # Follow the chain, coloring each node. Stop when we have no dependents,
             #  or when all dependents have been colored (go_on = False at the end of the loop)
             while True:
@@ -317,8 +457,8 @@ class Job:
                 #        +-------------------------+
                 #       /                           \
                 #    -- a ------- b ------ c ------ d --
-                #    The topo sort always prevents picking d first in this case, which would create 2 
-                #      chains instead of one: ad and bc. 
+                #    The topo sort always prevents picking d first in this case, which would create 2
+                #      chains instead of one: ad and bc.
                 #    In the loop below, the topological sort is given by the reverse of the closing time
                 #      of the DFS done above.
                 # We also want to record the color of one of our children:
@@ -327,46 +467,58 @@ class Job:
                 #   2. if no children have our color (because they were all colored before), we
                 #    choose arbitrarily (the last one, just because we have to exhaust the list anyway)
                 go_on = False
-                if cur_v.out_degree() == 0:
-                    current_ts.child_color = current_ts.color
+                if v.out_degree() == 0:
+                    pass
+                #    current_ts.child_color = current_ts.color
                 else:
-                    for dep_v in sorted(cur_v.out_neighbors(), key = lambda t:close_time[g.vp.tasks[t].name], reverse=True):
-                        dep_ts = g.vp.tasks[dep_v]
-                        if dep_ts.color is None:
-                            dep_ts.color = str(c)
+                    for vo in sorted(v.out_neighbors(), key = lambda t:close_time[t], reverse=True):
+                        if g.vp.color[vo] == -1:
+                            g.vp.color[vo] = c
                             go_on = True
                             break
-                        current_ts.child_color = dep_ts.color
-                #print(" \"%s\" [style=filled fillcolor=\"/paired12/%s\" color=\"/paired12/%s\"]"%(current_ts.name, current_ts.color, current_ts.child_color))
-                cfd.write(f'{current_ts.name},{current_ts.color}\n')
                 if go_on:
-                    current_ts = dep_ts
-                    cur_v = dep_v
+                    v = vo
                 else:
                     break
             # Reached the end of the chain, next color
             c += 1
-        #done coloring
-        cfd.close()
+
+        for v in g.vertices():
+            g.vp.tmp_color[v] = g.vp.color[v]
+
         #RF this is just for basic statistics about the graph
         count_edges = 0
         count_nodes_with_deps = 0
         for v in g.vertices():
-            ts = g.vp.tasks[v]
-            if ts.color is None or ts.child_color is None:
-                print(" uncolored task: {}".format(ts.name))
-            e = v.in_degree()
+            if g.vp.color[v] == -1:
+                print(" uncolored task: {}".format(v))
+            e = v.out_degree()
             if (e > 0):
                 count_nodes_with_deps += 1
                 count_edges += e
 
         # This assumes that for every node with at least one dependency, then one of the inputs
-        # should be local if we are scheduling according to chains. 
+        # should be local if we are scheduling according to chains.
         print("Graph Stats: tasks: %d edges: %d min_local_hit: %d max_local_miss: %d"%(
                         g.num_vertices(),
                         count_edges,
                         count_nodes_with_deps,
                         count_edges - count_nodes_with_deps))
 
-        # RF-MSR E
+        return c
 
+
+    
+
+    def generate_chain_color(self, g):
+        n_chains = self.generate_graph_chains(g)
+        while True:
+            H = self.assign_heirarchy(n_chains, g)
+
+            if not H.sum():
+                break
+            merged = self.merge_chains(n_chains, H)
+            self.recolor_graph(g, merged)
+
+        self.checkpoint_colors(g)
+        self.finalize(g)

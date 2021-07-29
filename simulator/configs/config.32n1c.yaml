@@ -6,8 +6,9 @@ benchmark:
   -  tpch1.consistent_round_robin.1
 cluster:
   prefetch: 0
-  scheduling: chain_color_rr
+  scheduling: chain_color_rr #hcolor_rr
   serialization: syncwdeser
+  active_workers: 4 #8 
 topology:
   r1:
     gateway: r3
