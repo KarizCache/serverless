@@ -12,6 +12,7 @@ import timeit
 import json
 import os
 import math
+import ast
 
 from graphviz import Digraph
 import matplotlib.colors as mcolors
@@ -193,6 +194,20 @@ class Scheduler(object):
                            edgecolors =self.worker_colors[ts['worker']], facecolors =(self.worker_colors[ts['worker']]))
             ax.broken_barh([(ts['start_ts'] + ts['fetch_time'], ts['computation_time'])], (base, size),
                            edgecolors =self.worker_colors[ts['worker']], facecolors='#f0f0f0')
+
+            vname = ts['name'] #fid.split('-', 1)
+            try:
+                vname = ast.literal_eval(vname)[0]
+            except ValueError:
+                vname = vname
+            ax.text(x=ts['start_ts'] + ts['fetch_time'] + (ts['computation_time'])/2,
+                    y=base + size/2,
+                    #s=f'{vname[1]}, {ts["nbytes"]>>20}MB' if len(vname) > 1 else vname[0],
+                    s=vname,
+                    ha='center',
+                    va='center',
+                    color='black')
+
             base += (size + margin)
         ax.set_yticklabels(yticks)
         ax.set_title(f'{job.name}\n{self.policy}', fontsize=18)
